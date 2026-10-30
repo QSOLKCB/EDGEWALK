@@ -23,3 +23,7 @@ Findings P0/P1/P2, exact reproduction, minimal correction, tests, and a verdict.
 ## v0.3 numerical controls
 
 Read docs/INVARIANTS_V03.md. Never mix X/Z CSS channels for scalar BP, infer stability at a non-fixed trial point, label partial eigenpairs as full spectra, or place floating eigenvalues in canonical receipts. Preserve failing numerical tests when fixing a defect.
+
+## v0.4 control experiments
+
+Read docs/INVARIANTS_V04.md and docs/CONTROL_PROTOCOL.md. Never call a degree-preserving null graph a new Golay code or ETQ root realization. The null sampler and event schedule must be deterministic and local, exact evidence hash-bound, optional statistics excluded from receipt identity. Report the finite Markov-chain nonuniformity caveat rather than claiming validated physical p-values. Add deterministic failing tests and run the full suite.
