@@ -297,7 +297,7 @@ def run_controlled_experiment(etq=None, *, ensemble_size=16, swaps=16, seed=303,
         for i in range(ensemble_size):
             sample_seed = _seed(seed,name,i)
             for retry in range(16):
-                rng = _CounterRNG(sample_seed+retry)
+                rng = _CounterRNG((sample_seed+retry) % (1 << 256))
                 try:
                     if name == "etq/product":
                         new_base,attempts = _rewire(base,swaps,rng)
@@ -325,3 +325,23 @@ def run_controlled_experiment(etq=None, *, ensemble_size=16, swaps=16, seed=303,
     return {"domain":"EDGEWALK/V4/EXPERIMENT","sha256":receipt,
             "exactEvidence":exact,"exploratoryAnalysis":_summarize(exact,bootstrap_draws),
             "claimBoundary":"Finite algorithmic controls only; no physical spacetime or statistical significance claim"}
+
+
+def replay_experiment_receipt(record, etq=None):
+    """Rebuild the exact controls from their committed seed, not just rehash JSON.
+
+    ETQ input, when present, must be supplied through the validated read-only
+    adapter by the caller. Exploratory bootstrap arrays are intentionally ignored.
+    """
+    try:
+        exact = record["exactEvidence"]
+        config = exact["config"]
+        replay = run_controlled_experiment(
+            etq, ensemble_size=config["ensembleSize"], swaps=config["swaps"],
+            seed=config["seed"], variants=tuple(config["variants"]),
+            bootstrap_draws=32)
+        return (record.get("domain") == "EDGEWALK/V4/EXPERIMENT"
+                and record.get("sha256") == replay["sha256"]
+                and exact == replay["exactEvidence"])
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return False
