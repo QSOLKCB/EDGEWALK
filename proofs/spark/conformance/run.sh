@@ -97,7 +97,10 @@ set +e
     python3 conformance/bridge.py compare \
       --cases results/cases.txt --expected results/python-expected.txt \
       --actual results/ada-observed.txt --receipt results/receipt.json
-    echo "SPARK_CONFORMANCE=TESTED: compiled Ada output matches independent Python cases"
+    python3 conformance/bridge.py verify \
+      --cases results/cases.txt --expected results/python-expected.txt \
+      --actual results/ada-observed.txt --receipt results/receipt.json
+    echo "SPARK_CONFORMANCE=TESTED: real Ada/Python outputs match; receipt replay verified"
   '
 sandbox_exit=$?
 set -e
