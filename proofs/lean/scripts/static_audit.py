@@ -31,6 +31,7 @@ REQUIRED = {
                  "dot_add_left", "dot_duplicate_zero"),
 }
 ROOT_IMPORTS = "".join(f"import Edgewalk.{name[:-5]}\n" for name in REQUIRED)
+ROOT_SOURCE = "import Edgewalk.CRT\nimport Edgewalk.Phase\nimport Edgewalk.Monomial\nimport Edgewalk.GF2\n\n/-! These are typed proof obligations: theorem names alone are insufficient. -/\n\nexample : Function.Bijective Edgewalk.CRT.address :=\n  Edgewalk.CRT.address_bijective\n\nexample (p : Fin 101 × Fin 3) :\n    Edgewalk.CRT.address (Edgewalk.CRT.inverse p) = p :=\n  Edgewalk.CRT.inverse_right p\n\nexample (a : Fin 3) :\n    Edgewalk.Phase.exponent a +\n      Edgewalk.Phase.exponent (Edgewalk.Phase.nextFibre a) +\n      Edgewalk.Phase.exponent\n        (Edgewalk.Phase.nextFibre (Edgewalk.Phase.nextFibre a)) = 0 :=\n  Edgewalk.Phase.three_step_closure a\n\nexample :\n    (∀ s : Edgewalk.Monomial.State,\n      Edgewalk.Monomial.iterateStep 303 s = s) ∧\n    (∀ k : Nat, 0 < k → k < 303 →\n      ∃ s : Edgewalk.Monomial.State,\n        Edgewalk.Monomial.iterateStep k s ≠ s) :=\n  Edgewalk.Monomial.monomial_exact_order_303\n\nexample (x : Edgewalk.GF2.Bit) : x + x = 0 :=\n  Edgewalk.GF2.self_add_zero x\n"
 BLOCKED = re.compile(
     r"\b(?:sorry|admit|axiom|unsafe|native_decide|run_tac|"
     r"declare_syntax_cat|set_option\s+autoImplicit)\b"
@@ -62,7 +63,7 @@ def audit(root: Path = ROOT) -> list[str]:
                 errors.append("Lake root/build targets changed")
     root_module = root / "Edgewalk.lean"
     if (not root_module.is_file()
-            or root_module.read_text(encoding="utf-8") != ROOT_IMPORTS):
+            or root_module.read_text(encoding="utf-8") != ROOT_SOURCE):
         errors.append("root module must import all four expected proof modules, unchanged")
     expected_files = set(REQUIRED)
     actual_files = {p.relative_to(lean_root).as_posix() for p in lean_root.rglob("*.lean")} if lean_root.is_dir() else set()
