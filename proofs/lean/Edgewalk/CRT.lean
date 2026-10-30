@@ -35,14 +35,14 @@ theorem inverse_right (p : Fin 101 × Fin 3) : address (inverse p) = p := by
     have hj := p.1.isLt
     have ha := p.2.isLt
     change
-      ((p.1.val + 101 * ((2 * (p.2.val + 3 - p.1.val % 3)) % 3)) % 303) % 101 =
+      ((p.1.val + 101 * ((2 * (p.2.val + 3 - p.1.val % 3)) % 3))) % 101 =
         p.1.val
     omega
   · apply Fin.ext
     have hj := p.1.isLt
     have ha := p.2.isLt
     change
-      ((p.1.val + 101 * ((2 * (p.2.val + 3 - p.1.val % 3)) % 3)) % 303) % 3 =
+      ((p.1.val + 101 * ((2 * (p.2.val + 3 - p.1.val % 3)) % 3))) % 3 =
         p.2.val
     omega
 
