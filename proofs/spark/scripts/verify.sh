@@ -28,11 +28,12 @@ for dir in /lib /lib64 /bin; do
 done
 
 # Never mount real /home, /root, /run, /mnt, SSH agent or Docker socket.
+set +e
 /usr/bin/bwrap --unshare-all --die-with-parent --new-session --clearenv \
   --ro-bind /usr /usr "${mounts[@]}" \
   --dir /work --bind "$scratch/work" /work \
   --tmpfs /tmp --tmpfs /home --tmpfs /root --proc /proc --dev /dev \
-  --setenv HOME /home --setenv PATH /usr/bin:/bin \
+  --setenv HOME /home --setenv PATH /usr/local/bin:/usr/bin:/bin \
   --setenv GIT_CONFIG_NOSYSTEM 1 --setenv GIT_CONFIG_GLOBAL /dev/null \
   --chdir /work /usr/bin/bash -euc '
     for executable in gprbuild gnatprove gnatmake python3; do
@@ -76,3 +77,21 @@ PY
     fi
     echo "SPARK_STATUS=REVIEW_REQUIRED: no automatic proof certification"
   '
+sandbox_exit=$?
+set -e
+
+# Persist only well-defined inert text evidence, never sandbox-created code.
+mkdir -p evidence
+for name in gnat-version.txt gprbuild-version.txt gnatprove-version.txt \
+            ada-selftest.txt gnatprove-run.txt gnatprove-exit.txt \
+            gnatprove.out gnatprove-assessment.json; do
+  candidate="$scratch/work/evidence/$name"
+  if [[ -f "$candidate" && ! -L "$candidate" ]]; then
+    cp -- "$candidate" "evidence/$name"
+  fi
+done
+if [[ "$sandbox_exit" -ne 0 ]]; then
+  echo "SPARK_STATUS=UNVERIFIED: isolated compile/proof process failed (exit $sandbox_exit)" >&2
+  exit "$sandbox_exit"
+fi
+echo "SPARK_STATUS=REVIEW_REQUIRED: proof evidence retained for independent audit"
