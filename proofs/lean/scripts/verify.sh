@@ -43,7 +43,7 @@ done
   --ro-bind "$TOOLCHAIN_ROOT" /toolchain \
   "${mounts[@]}" \
   --dir /work --bind "$sandbox/work" /work \
-  --dir /sandbox-home --tmpfs /tmp --proc /proc --dev /dev \
+  --tmpfs /sandbox-home --tmpfs /tmp --proc /proc --dev /dev \
   --setenv HOME /sandbox-home \
   --setenv XDG_CACHE_HOME /sandbox-home/.cache \
   --setenv PATH /toolchain/bin:/usr/bin:/bin \
