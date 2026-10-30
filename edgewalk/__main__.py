@@ -13,7 +13,34 @@ def main():
     parser.add_argument("--no-nonbacktracking", action="store_true", help="skip expensive v0.3 Hashimoto eigenmodes")
     parser.add_argument("--epsilon", type=float, default=0.01, help="v0.3 potential perturbation (default: 0.01)")
     parser.add_argument("--swaps", type=int, default=16, help="deterministic control 2-switches")
+    parser.add_argument("--controls", action="store_true", help="v0.4 exact null ensembles and exploratory summary")
+    parser.add_argument("--control-samples", type=int, default=16, help="v0.4 ensemble size [4,128]")
+    parser.add_argument("--control-swaps", type=int, default=16, help="v0.4 two-switch count [1,512]")
+    parser.add_argument("--control-seed", type=int, default=303, help="v0.4 finite deterministic seed")
+    parser.add_argument("--bootstrap-draws", type=int, default=256, help="v0.4 auxiliary bootstrap samples")
+    parser.add_argument("--control-variants", default="reference,shear-a,shear-b",
+                        help="v0.4 comma-separated Golay basis variants")
     args = parser.parse_args()
+    control_options_changed = (args.control_samples != 16 or args.control_swaps != 16
+                               or args.control_seed != 303 or args.bootstrap_draws != 256
+                               or args.control_variants != "reference,shear-a,shear-b")
+    if args.controls:
+        if (args.full or args.numerical or args.stability or args.no_nonbacktracking
+                or args.swaps != 16 or args.epsilon != 0.01):
+            parser.error("--controls is separate from --full, --numerical and --stability")
+        from .controls import run_controlled_experiment
+        etq = None
+        if args.etq_bundle:
+            from .etq import load_etq_bundle
+            etq = load_etq_bundle(args.etq_bundle)
+        result = run_controlled_experiment(
+            etq, ensemble_size=args.control_samples, swaps=args.control_swaps,
+            seed=args.control_seed, bootstrap_draws=args.bootstrap_draws,
+            variants=tuple(args.control_variants.split(",")))
+        print(json.dumps(result, sort_keys=True, separators=(",", ":"), allow_nan=False))
+        return
+    if control_options_changed:
+        parser.error("v0.4 control options require --controls")
     if args.etq_bundle:
         if args.full or (args.no_nonbacktracking and not args.stability):
             parser.error("--full is baseline-only; --no-nonbacktracking requires --stability")

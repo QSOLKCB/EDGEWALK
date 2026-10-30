@@ -71,3 +71,29 @@ The engine computes directed-edge Hashimoto eigenmodes with residuals and qualif
 These are mathematical diagnostics. The BP proxy is not quantum decoding performance; a single deterministic control is not a null distribution; partial spectral samples are not full spectra. No physical cosmology interpretation is implied. See docs/INVARIANTS_V03.md.
 
 Integration gate: tests using synthetic 303-state Cartesian graphs validate the mathematics and code paths, NOT the original published ETQ-303 source identity. A verified run against the actual SONIFICATION artifact bundle remains mandatory for a real end-to-end result. No GitHub Actions are added.
+
+## v0.4.0 — Controlled Spectral Experiments
+
+Reproducible **integer-only core**, with no extra dependencies for the Golay controls:
+
+~~~bash
+python -m edgewalk --controls
+python -m edgewalk --controls --control-samples 32 --control-swaps 16 --control-seed 303
+python -m unittest discover -s tests -v
+~~~
+
+For the ETQ-303 Cartesian-product control, first generate and independently verify the original SONIFICATION v3.0.0 build bundle, then:
+
+~~~bash
+python -m edgewalk --controls --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0
+~~~
+
+The adapter remains **read-only** and validates ETQ's published commitments. Synthetic test fixtures are not equivalent to an archived ETQ integration run. No network fetch is performed by EDGEWALK.
+
+**What the controls do:** reference and two elementary-GF(2)-sheared Golay Tanner check bases are valid CSS stabilizer bases. For each basis, its null ensemble uses deterministic channel-preserving Tanner two-switches which preserve every vertex's X/Z degrees but may violate CSS constraints. ETQ controls first verify the real graph's `G101 □ C3` topology, then rewire the 101-node base while preserving degree, reconnect and lift back to `G101 □ C3`. These nulls retain product geometry but are not released ETQ root models.
+
+The **exact experiment evidence**, including source and null graph SHA-256 fingerprints, integer fourth adjacency spectral moments/4-cycles, 303-event edge-walk coverage, paired 1-/2-edge deletion deltas, fixed settings and seeds, is bound by `EDGEWALK/V4/EXPERIMENT`. Run `edgewalk.controls.replay_experiment_receipt` to independently regenerate the integer portion. Changing bootstrap output does not change exact identity.
+
+The **separate exploratory analysis** reports the generated null mean and median, a seeded percentile-bootstrap interval for the null mean, empirical two-sided tail fractions, and Holm-adjusted exploratory tail ranks across the predeclared metric family. Finite-step graph two-switches are *not established as uniform, stationary, independent or exchangeable null draws*. Consequently, these are **not calibrated p-values or frequentist confidence intervals for physics**. A significant cosmological, dark-energy or dark-matter result is **not** claimed. Source graphs have different sizes and degrees; absolute comparisons across Golay and ETQ are descriptive only.
+
+See [CONTROL_PROTOCOL](docs/CONTROL_PROTOCOL.md), [INVARIANTS_V04](docs/INVARIANTS_V04.md) and [RESEARCH_PLAN](docs/RESEARCH_PLAN.md). The existing v0.1, v0.2 and v0.3 command paths and exact receipts are unchanged. No GitHub Actions have been introduced.
