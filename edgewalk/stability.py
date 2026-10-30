@@ -67,14 +67,18 @@ def nonbacktracking_modes(graph, modes=4, tolerance=1e-7):
     if n < 3:
         raise ValueError("at least three oriented edges required")
     k = min(modes, n - 2)
+    full_dense_eigenvalues = None
     v0 = np.arange(1, n + 1, dtype=np.float64)
     v0 /= np.linalg.norm(v0)
     try:
         if n <= 128:
-            values, vectors = np.linalg.eig(matrix.toarray())
-            order = sorted(range(len(values)), key=lambda i: (-abs(values[i]),
-                          -values[i].real, -values[i].imag))[:k]
-            values, vectors = values[order], vectors[:, order]
+            full_dense_eigenvalues, full_dense_vectors = np.linalg.eig(matrix.toarray())
+            order = sorted(range(len(full_dense_eigenvalues)),
+                           key=lambda i: (-abs(full_dense_eigenvalues[i]),
+                                          -full_dense_eigenvalues[i].real,
+                                          -full_dense_eigenvalues[i].imag))[:k]
+            values = full_dense_eigenvalues[order]
+            vectors = full_dense_vectors[:, order]
             solver = "numpy.linalg.eig dense"
         else:
             values, vectors = spla.eigs(matrix, k=k, which="LM", v0=v0,
@@ -89,12 +93,23 @@ def nonbacktracking_modes(graph, modes=4, tolerance=1e-7):
     for i, (value, vector) in enumerate(zip(values, vectors.T)):
         vector = vector / np.linalg.norm(vector)
         residual = float(np.linalg.norm(matrix @ vector - value * vector))
-        collision = any(i != j and abs(value - other) <= 10 * tolerance * max(1.0, abs(value))
-                        for j, other in enumerate(values))
+        threshold = 10 * tolerance * max(1.0, abs(value))
+        returned_collision = any(
+            i != j and abs(value - other) <= threshold
+            for j, other in enumerate(values)
+        )
+        # Dense branch: check the FULL eigenspectrum, including discarded modes.
+        # A partial sparse ARPACK spectrum cannot certify global multiplicity.
+        full_collision = (
+            bool(np.count_nonzero(np.abs(full_dense_eigenvalues - value) <= threshold) > 1)
+            if full_dense_eigenvalues is not None else None
+        )
+        collision = returned_collision or full_collision is True
         modes_out.append({"real": float(value.real), "imag": float(value.imag),
                           "magnitude": float(abs(value)), "residualL2": residual,
                           "edgeIPR": None if collision else float(np.sum(np.abs(vector) ** 4)),
-                          "nearDegenerateAmongReturned": bool(collision)})
+                          "nearDegenerateAmongReturned": bool(returned_collision),
+                          "nearDegenerateInFullSpectrum": full_collision})
     return {"states": n, "transitions": int(matrix.nnz), "requestedModes": modes,
             "returnedModes": len(modes_out), "solver": solver,
             "precision": "float64/complex128", "tolerance": tolerance,
@@ -284,15 +299,20 @@ def bp_fixed_point_probe(channel="x", llr=0.5, damping=0.5,
     _, _, arcs = bp_messages(channel)
     point = np.full(len(arcs), float(llr))
     converged = False
+    message_bound_exceeded = False
     for iteration in range(1, max_iterations+1):
         step, _ = _bp_map(channel, point, llr)
         delta = step-point
         if np.max(np.abs(delta)) <= atol:
             converged = True
             break
-        point = point + damping*delta
-        if np.max(np.abs(point)) > 30:
+        candidate = point + damping * delta
+        if not np.all(np.isfinite(candidate)) or np.max(np.abs(candidate)) > 30:
+            message_bound_exceeded = True
             break
+        point = candidate
+    # The last admissible iterate remains available even if the proposed
+    # update crossed the message bound. No fixed-point claim is made then.
     step, jac = _bp_map(channel, point, llr)
     residual = float(np.max(np.abs(step-point)))
     qualified = bool(converged and residual <= atol)
@@ -303,6 +323,9 @@ def bp_fixed_point_probe(channel="x", llr=0.5, damping=0.5,
             "fixedPointResidualInfinity": residual, "fixedPointQualified": qualified,
             "jacobianSpectralRadius": radius,
             "locallyAttracting": (radius < 1) if qualified else None,
+            "messageBoundExceeded": message_bound_exceeded,
+            "terminationReason": ("message-bound" if message_bound_exceeded
+                                  else "fixed-point" if qualified else "iteration-limit"),
             "precision": "float64",
             "note": "stability of an authored homogeneous-LLR scalar BP fixed point, not quantum dynamics/FER"}
 
