@@ -7,6 +7,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
 import unittest
 
@@ -43,6 +44,52 @@ class LeanSourceContractTests(unittest.TestCase):
             module.write_text(module.read_text().replace("by sorry", "by trivial"))
             (path / "lean-toolchain").write_text("leanprover/lean4:v4.36.0\n")
             self.assertTrue(any("toolchain pin" in error for error in audit.audit(path)))
+
+    def test_root_import_omission_is_a_hard_failure(self):
+        audit = audit_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            shutil.copytree(LEAN / "Edgewalk", project / "Edgewalk")
+            shutil.copytree(LEAN / "scripts", project / "scripts")
+            shutil.copy(LEAN / "lakefile.toml", project)
+            shutil.copy(LEAN / "lean-toolchain", project)
+            (project / "Edgewalk.lean").write_text(
+                "import Mathlib\nexample : True := by trivial\n",
+                encoding="utf-8",
+            )
+            # Even if the root only imports a trivial theorem, the verifier
+            # may never emit a kernel PASS while CRT is missing from imports.
+            source = project / "Edgewalk" / "CRT.lean"
+            source.write_text(source.read_text() + "\ntheorem broken : False := by\n  exact True.intro\n")
+            self.assertTrue(any("root module" in e for e in audit.audit(project)))
+            result = subprocess.run(
+                ["bash", str(project / "scripts" / "verify.sh")],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertNotIn("KERNEL_CHECKED=PASS", result.stdout + result.stderr)
+            self.assertIn("SOURCE_AUDIT=FAIL", result.stdout)
+
+    def test_effective_toml_revision_and_url_are_checked(self):
+        audit = audit_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            shutil.copytree(LEAN / "Edgewalk", project / "Edgewalk")
+            shutil.copy(LEAN / "Edgewalk.lean", project)
+            shutil.copy(LEAN / "lean-toolchain", project)
+            original = (LEAN / "lakefile.toml").read_text()
+            expected = audit.PIN
+            changed = original.replace(
+                f'rev = "{expected}"',
+                'rev = "1111111111111111111111111111111111111111"',
+            ) + f'\n# old permitted digest: {expected}\n'
+            (project / "lakefile.toml").write_text(changed)
+            self.assertTrue(any("effective Mathlib" in e for e in audit.audit(project)))
+            changed_url = original.replace(
+                audit.MATHLIB_URL, "https://example.invalid/forged-mathlib"
+            ) + f'\n# original Mathlib URL: {audit.MATHLIB_URL}\n'
+            (project / "lakefile.toml").write_text(changed_url)
+            self.assertTrue(any("effective Mathlib" in e for e in audit.audit(project)))
 
     def test_crt_addresses_are_a_complete_bijection(self):
         pairs = [(n % 101, n % 3) for n in range(303)]
