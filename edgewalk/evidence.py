@@ -238,8 +238,11 @@ def verify_evidence_package(directory, *, etq_directory=None):
         _require(validation == expected, "ETQ source identity differs")
         etq = load_etq_bundle(etq_directory)
     else:
-        _require(validation["gate"] == "not-run" and etq_directory is None,
-                 "unverified or mismatched ETQ source")
+        _require(validation == {
+            "schema": "edgewalk.etq-validation/v1",
+            "gate": "not-run",
+            "reason": "No independently authenticated ETQ v3 export supplied"
+        } and etq_directory is None, "unverified or forged ETQ source metadata")
         etq = None
     _require(replay_experiment_receipt(record, etq), "exact experiment replay failed")
     _require(_load(package, "calibration.json") == _json(_calibration(record)),
