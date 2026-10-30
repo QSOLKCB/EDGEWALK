@@ -109,6 +109,39 @@ class SparkContractTests(unittest.TestCase):
         self.assertNotIn("SPARK_STATUS=PASS", shell)
         self.assertNotIn("VERIFIED=PASS", shell)
 
+    def test_installed_alire_prefix_is_read_only_and_host_home_hidden(self):
+        shell = (SPARK / "scripts" / "verify.sh").read_text()
+        self.assertIn("EDGEWALK_SPARK_TOOLCHAIN", shell)
+        self.assertIn("edgewalk-spark-toolchain", shell)
+        self.assertIn('--ro-bind "$toolchain_dir" "$toolchain_dir"', shell)
+        self.assertIn("--tmpfs /home", shell)
+        self.assertIn('--dir "$home_real"', shell)
+        self.assertIn('--dir "$opt_real"', shell)
+        self.assertIn("--tmpfs /sandbox-home", shell)
+        self.assertIn("--unshare-all", shell)
+        self.assertIn("--clearenv", shell)
+        self.assertIn("toolchain-executable-sha256.txt", shell)
+        self.assertIn("GNATprove", (SPARK / "README.md").read_text())
+        self.assertNotIn("must be preinstalled under /usr", shell)
+        self.assertNotIn("SPARK_STATUS=PASS", shell)
+
+    def test_isolated_toolchain_preflight_and_bash_syntax(self):
+        import os
+        import subprocess
+        import tempfile
+        shell = SPARK / "scripts" / "verify.sh"
+        lint = subprocess.run(["bash", "-n", str(shell)], capture_output=True, text=True)
+        self.assertEqual(lint.returncode, 0, lint.stderr)
+        with tempfile.TemporaryDirectory() as temp:
+            # Never try a host compiler or manufacture proof evidence when the
+            # declared toolchain does not exist in the approved opt directory.
+            env = dict(os.environ, EDGEWALK_SPARK_TOOLCHAIN=temp)
+            trial = subprocess.run(["bash", str(shell)], env=env,
+                                   capture_output=True, text=True, timeout=20)
+            self.assertNotEqual(trial.returncode, 0)
+            self.assertNotIn("SPARK_STATUS=PASS", trial.stdout + trial.stderr)
+            self.assertNotIn("SPARK_STATUS=REVIEW_REQUIRED", trial.stdout + trial.stderr)
+
     def test_assessor_missing_or_malformed_reports_fail_closed(self):
         assess = assessor()
         for payload in ("", "GNATprove succeeded", "Total   0"):
