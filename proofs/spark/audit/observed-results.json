@@ -1,0 +1,64 @@
+{
+  "schema": "edgewalk.spark-verification-observation/v1",
+  "observationOrigin": "User-shared local GNATprove report and terminal transcript; full original files not supplied to this PR yet",
+  "proofSourceGitRevision": "6a8c0c72dd8f456e75907b213c46828395fc9ca2",
+  "proofSourceFilesSha256": {
+    "proofs/spark/src/edgewalk_reference.ads": "4608dc2406f241dd186ee39a38004704068b853d3b44a1401ca1b3bdf2a63bd0",
+    "proofs/spark/src/edgewalk_reference.adb": "3eb7dd71ad47b9ab08c2a94bea32089f8c306e42f5715daf3e765b20d90c18fe"
+  },
+  "run": {
+    "reportTimestampUtc": "2026-10-30T13:43:44Z",
+    "gnatproveExitCode": 0,
+    "adaSelftest": "ADA_REFERENCE_SELFTEST=PASS (runtime tests only)",
+    "gnatproveVersion": "FSF 16.1.0",
+    "gnatproveCommand": "gnatprove -P edgewalk_spark.gpr --mode=all --level=2 --report=all --output-header --proof-warnings=on -j1",
+    "categories": {
+      "dataDependencies": 7,
+      "flowDependencies": 1,
+      "initialization": 2,
+      "runtimeChecks": 23,
+      "assertions": 2,
+      "functionalContracts": 7,
+      "termination": 6
+    },
+    "totalChecks": 48,
+    "flowChecks": 16,
+    "proverChecks": 32,
+    "unproved": 0,
+    "justified": 0,
+    "analyzedUnits": 1,
+    "analyzedPackagesAndSubprograms": 8,
+    "declaredPackagesAndSubprograms": 8,
+    "detailedReportAssumptions": 0,
+    "detailedReportWarnings": 0,
+    "note": "The summary reports 7 functional-contract proof checks, not complete proof of arbitrary undeclared semantics."
+  },
+  "alireCrates": {
+    "gnat_native": "16.1.0",
+    "gprbuild": "26.0.1",
+    "gnatprove": "16.1.0"
+  },
+  "executableVersions": {
+    "gnatmake": "GNATMAKE 16.1.0",
+    "gprbuild": "GPRBUILD 26.0.0",
+    "gnatprove": "FSF 16.1.0"
+  },
+  "executableSha256": {
+    "gnatmake": "005cfc99713f3513671c74175547528f961698f7d44e23f33976a53bcb11c52b",
+    "gprbuild": "aff9fde5ca766d5497da9dec185cb8b96878206a0d02512aa5685e1e56d0a4d3",
+    "gnatprove": "544e6da2eedc24ce87d9200d44f61e8e789726466e81e68bf8935489d7f5323e"
+  },
+  "pythonSuite": {
+    "passed": 75,
+    "failed": 0,
+    "reportOrigin": "user terminal output",
+    "archivedOriginalLog": false
+  },
+  "verificationBoundaries": {
+    "spark": "GNATprove analysis reported 48 checks with 0 justified and 0 unproved, pending independently archived original bytes",
+    "lean": "Not part of this audit; no Lean kernel proof transcript supplied",
+    "python": "75 runtime tests passed; this is not formal equivalence with SPARK",
+    "toolchain": "Observed executable SHA256 only; release archive provenance remains independent verification gate"
+  },
+  "originalEvidenceImported": false
+}
