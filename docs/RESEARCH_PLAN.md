@@ -1,26 +1,26 @@
-# EDGEWALK research plan and falsification gates
+# EDGEWALK Research Plan
 
-## Hypothesis H0 (null)
-Similar-looking spectral/stability features between Golay Tanner walks and ETQ-303-derived graph observations arise from graph size, node-degree profiles, deterministic scheduling, or plotting choices rather than a shared underlying mechanism.
+## Scientific and algorithmic boundaries
 
-## H1 (conditional, testable)
-After controlling for degree profiles, vertex counts, schedule, and metric normalization, selected graph and perturbation diagnostics show reproducible associations exceeding the null ensemble. An association is not proof of common physical implementation.
+**H0:** alleged QEC/ETQ/cosmology spectral similarities are explained by graph size, degree, protocol scheduling or graph selection, not shared physics. **H1:** controlled and preregistered structural associations persist beyond meaningful null ensembles. Associations alone do not establish a physical mechanism.
 
-## Planned phases
-- **v0.1**: exact Golay construction, honest Tanner adjacency, 303-event auxiliary walk and immutable receipt. Validate all discrete invariants.
-- **v0.2**: an ETQ read-only input adapter that validates upstream version/identity and consumes exact upstream graph/event artifacts. The fixture must not be reconstructed by assuming a CRT step is a graph edge.
-- **v0.3**: numeric auxiliary graph Laplacian, non-backtracking spectrum, IPR, spectral gaps, local BP Jacobian proxy; report solver precision and degeneracy policy. No numeric values in exact receipts.
-- **v0.4**: paired controls, degree-preserving edge rewires (subject to bipartite constraints), schedule permutations, multiple check-basis choices, pre-registered thresholds and negative-result reports.
-- **v0.5+**: conditional, independent spacetime-model adapters only with explicitly stated physical predictions and externally provided model equations/data. Do not conflate 3+2 engineering channels with (3,2) spacetime signature.
+- **v0.1 delivered:** exact binary Golay/CSS rank and distance, X/Z Tanner topology, 303 integer event scheduler, hash-bound baseline.
+- **v0.2 delivered:** read-only receipt-pinned ETQ-303 v3 input adapter; real adjacency-tested ETQ and Golay auxiliary walks; exact Laplacian/adjacency moments; non-backtracking combinatorial statistics; optional floating eigenspectrum/IPR; one deterministic degree-preserving topological control per system; separately domain-bound comparison receipt.
+- **v0.3 planned:** rigorous non-backtracking eigenmodes, ETQ Cartesian spectral-shift numerical cross-check, degenerate eigenspace projectors, solver reproducibility/precision, BP Jacobian proxy.
+- **v0.4 planned:** multiple check-basis choices, paired degree- and size-matched null ensembles, graph constraints, repeated perturbations, preregistered thresholds, interval estimates, negative and null-result archive.
+- **v0.5+ conditional:** independent physically calibrated differential-equation models if available; no 3+2 engineering signature interpreted as a (3,2) spacetime signature.
 
-## Evaluation
-Separate exact correctness, software reproducibility, numerical robustness, and empirical interpretation. Compare out-of-sample metrics under matched controls. Report confidence intervals and multiple-comparison handling; archive failed and null comparisons.
+## What is and is not validated
 
-## ETQ caution
-ETQ-303's event support map (j,a)->(j+1 mod 101,a+1 mod 3) generally changes both coordinates, so it does not trace edges of G101 □ C3. A separate verified traversal must be built for any graphical edge-walk claim.
+The *source* ETQ-303 contract is exact finite graph/event mathematics. The *receiver* reports edge walks selected by our explicit schedule rather than original ETQ support steps. Degree-preserving rewires preserve integer degree counts but do not preserve the CSS commutation law, graph product identity, locality or physical provenance. Their moments are useful regression checks but not discriminative under fixed degree sequence.
 
-## Gremlin notes
-- **G-001 false edge**: treating CRT support steps as Cartesian product graph edges. Prohibited.
-- **G-002 rank confusion**: using real-valued rank rather than GF(2) rank. Prohibited.
-- **G-003 spectral fishing**: selecting a graph, coordinate mapping, or eigensolver solely because plots look similar. Controlled experiments required.
-- **G-004 identity laundering**: treating an EDGEWALK schedule as the original ETQ event receipt. Prohibited.
+The v0.2 test suite uses **synthetic** ETQ-shaped fixtures with mocked cryptographic commitments strictly to exercise failures and parser branches. A successful full-bundle integration run requires an actual upstream build directory. Do not report one if it has not been run.
+
+## Gremlin log
+
+G-001 ETQ CRT support sequence is not G101 square C3 edge traversal; separate receiver mandatory.
+G-002 GF(2) rank != real-valued matrix rank.
+G-003 visually similar eigenvalues require precommitted null controls.
+G-004 EDGEWALK hashes are never ETQ/V3 receipts.
+G-005 a degree-preserving graph rewire may cease to be a CSS or ETQ graph.
+G-006 numeric eigenvector IPR under degeneracy is not uniquely reproducible from eigenvector choice.
