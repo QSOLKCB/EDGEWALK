@@ -10,3 +10,7 @@
 8. Sampling diagnostics (first/second-half means and lag-one serial correlation) are descriptive. Report calibrated=false unless a separately validated mixing/exchangeability model is added. Never call v0.4 exploratory tail fractions calibrated p-values.
 9. Findings language: supported exact graph arithmetic/replay; INCONCLUSIVE inference about cross-system mechanism; NOT TESTED dark matter/dark energy/(3,2)-spacetime. Do not infer physical theory from topology.
 10. The authentic SONIFICATION integration check remains a release gate until an actual verified original bundle is run, even if synthetic/mock tests pass. No GitHub Actions.
+
+
+11. **External trust required:** the full ETQ v3 manifest SHA-256 must match a separately authenticated trusted value, supplied through the dedicated CLI/API parameter. Missing pins fail closed; pins calculated from the submitted bundle are not independent trust roots. No internally self-consistent receipt may authenticate itself.
+12. **Auxiliary replay required:** the package stores its bootstrap draw count outside the v0.4 exact core; the verifier regenerates every exploratory summary deterministically and compares canonical bytes. Rehashing a forged exploratory result cannot make it valid.

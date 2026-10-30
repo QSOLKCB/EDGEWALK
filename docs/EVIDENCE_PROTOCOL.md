@@ -25,3 +25,34 @@ The v0.4 null ensemble is built by finite, deterministic two-switch chains. This
 - Cosmological/dark-sector/(3,2) theories: not tested here; no evidence accepted for or against.
 
 All negative/null results remain included. No GitHub Actions or external network is needed in normal runtime.
+
+
+## P1 trust-anchor hardening
+
+The pinning of the ETQ event document and lifted edges in the canonical
+contract is **not sufficient** to authenticate arbitrary receiver bytes.
+The full v3.0.0 release gate accepts only a complete bundle whose
+\`manifest.json\` byte SHA-256 equals the externally supplied
+\`trusted_etq_manifest_sha256\`. Because this manifest commits to all eight
+payload files (including the observation receipt), that comparison binds the
+receiver hashes to the independently acquired manifest commitment.
+
+The pin is a **trust input**, not a digest extracted from \`manifest.json\`
+itself and not a value recovered from the same untrusted directory. Until
+the publisher archives or publishes that independent full-release digest,
+the command without a pin must refuse the \`passed\` verdict. An adversarial
+caller who supplies both a forged bundle and its SHA-256 has not established
+authenticity; the external origin of the trust input must be checked separately.
+
+## P2 exploratory evidence reconstruction
+
+\`experiment.json\` stores the separate \`analysisParameters.bootstrapDraws\`
+integer (32–4096) alongside the original unchanged v0.4 exact evidence. On
+verification, regenerate the exact controls, then run the same
+\`controls._summarize(exactEvidence, bootstrapDraws)\` and compare canonical
+summary bytes. Neither the bootstrap parameter nor the exploratory array
+is part of v0.4's domain-separated exact experiment receipt.
+
+Changing an exploratory observation, tail fraction, Holm adjustment,
+or percentile interval and fixing all outer file hashes is a verification
+failure. No new calibrated significance claim is introduced.

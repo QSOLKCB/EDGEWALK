@@ -128,3 +128,39 @@ The package is a **new, exclusive directory** (never overwritten), containing ex
 ETQ validation calls the v0.2 cryptographically pinned source adapter and additionally checks **all** manifest-listed output bytes, the signed-by-hash observation receipt core, and receiver SHA-256 commitments. This establishes release-artifact **integrity relative to published commitments**, not authorship, physical provenance or observational validation.
 
 Calibration deliberately fails closed: lag-one and split-half metrics are diagnostic, but the finite two-switch chains are not proven mixed, stationary, independent or exchangeable. No calibrated significance, physics confidence interval, dark-energy conclusion or dark-matter conclusion is reported. See docs/INVARIANTS_V05.md and docs/EVIDENCE_PROTOCOL.md. The authentic ETQ end-to-end gate must be executed on actual upstream files: synthetic fixture tests do not count as passing it. No GitHub Actions are added.
+
+
+### Mandatory v0.5 trust pin and exploratory-summary replay
+
+The upstream ETQ-303 publication pins events and lifted edges, but no independently
+published **complete v3.0.0 manifest SHA-256** has been verified for this
+implementation. The full ETQ validation gate therefore **fails closed** by
+default: a self-consistent manifest and observation receipt cannot establish
+an authentic complete export. Supply \`--trusted-etq-manifest-sha256 SHA256\`
+only with a digest separately obtained and authenticated from the publisher
+or another trusted archival source. **Never compute this pin from the bundle
+being validated**; doing so reintroduces the forgery vulnerability. The caller
+is responsible for the independent provenance of this pin. The CLI cannot
+itself prove a caller-supplied digest was obtained independently.
+
+~~~bash
+python -m edgewalk --validate-etq SOURCE_DIR \
+  --trusted-etq-manifest-sha256 TRUSTED_64_HEX_SHA256
+
+python -m edgewalk --evidence-out evidence-etq --etq-bundle SOURCE_DIR \
+  --trusted-etq-manifest-sha256 TRUSTED_64_HEX_SHA256
+
+python -m edgewalk --verify-evidence evidence-etq --etq-bundle SOURCE_DIR \
+  --trusted-etq-manifest-sha256 TRUSTED_64_HEX_SHA256
+~~~
+
+A real release pin should be published separately (for example in a signed,
+version-specific release statement) before anyone claims the full gate passed.
+Golay-only packages do not need an ETQ pin and continue to record \`not-run\`.
+
+The v0.5 package also records \`analysisParameters.bootstrapDraws\` outside
+the exact v0.4 evidence commitment. Verification independently reconstructs
+every \`exploratoryAnalysis\` field, including the seeded bootstrap intervals
+and tail-rank adjustments. Incorrect or type-altered summaries are rejected
+even when the package's outer manifest/checksum values are recomputed. The
+v0.4 exact receipt identity remains unaffected by bootstrap settings.
