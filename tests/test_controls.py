@@ -71,6 +71,20 @@ class ControlledSpectralTests(unittest.TestCase):
         report["exactEvidence"]["systems"]["golay/reference"]["observed"]["fourCycles"]+=1
         self.assertFalse(replay_experiment_receipt(report))
 
+    def test_exact_replay_rejects_integer_to_float_substitution(self):
+        # Structural equality is insufficient: 1 == 1.0 but JSON bytes differ.
+        from copy import deepcopy
+        report = run_controlled_experiment(ensemble_size=4, swaps=2,
+                                           bootstrap_draws=32)
+        self.assertTrue(replay_experiment_receipt(report))
+        tampered = deepcopy(report)
+        observed = tampered["exactEvidence"]["systems"]["golay/reference"]["observed"]
+        value = observed["fourCycles"]
+        self.assertIs(type(value), int)
+        observed["fourCycles"] = float(value)
+        self.assertEqual(tampered["exactEvidence"], report["exactEvidence"])
+        self.assertFalse(replay_experiment_receipt(tampered))
+
     def test_etq_product_preserving_nulls(self):
         full,base=synthetic_product()
         self.assertEqual(etq_base(full),_graph(base))
