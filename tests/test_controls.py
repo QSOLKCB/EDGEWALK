@@ -3,7 +3,7 @@ import unittest
 from edgewalk.controls import (
     METRICS, VARIANTS, _CounterRNG, _graph, _rewire,
     build_basis_tanner, etq_base, four_cycles, graph_sha256, lift_etq,
-    run_controlled_experiment, trace_a4,
+    run_controlled_experiment, replay_experiment_receipt, trace_a4,
 )
 
 
@@ -61,6 +61,15 @@ class ControlledSpectralTests(unittest.TestCase):
             self.assertEqual(len({c['graphSha256'] for c in entry['controls']}),4)
             self.assertEqual(set(entry['observed']),set(METRICS))
             self.assertTrue(all(type(v) is int for v in entry['observed'].values()))
+
+    def test_exact_replay_and_tamper_rejection(self):
+        report=run_controlled_experiment(ensemble_size=4,swaps=3,
+                                         seed=9,bootstrap_draws=32)
+        self.assertTrue(replay_experiment_receipt(report))
+        report["exploratoryAnalysis"]["warning"]="different explanation"
+        self.assertTrue(replay_experiment_receipt(report))  # not identity-bearing
+        report["exactEvidence"]["systems"]["golay/reference"]["observed"]["fourCycles"]+=1
+        self.assertFalse(replay_experiment_receipt(report))
 
     def test_etq_product_preserving_nulls(self):
         full,base=synthetic_product()
