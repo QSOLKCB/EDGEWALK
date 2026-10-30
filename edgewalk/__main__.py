@@ -13,6 +13,8 @@ def main():
                         help="v0.5 verify package digests and rebuild exact controls")
     parser.add_argument("--validate-etq", metavar="DIR",
                         help="v0.5 verify a complete genuine ETQ export")
+    parser.add_argument("--trusted-etq-manifest-sha256", metavar="SHA256",
+                        help="independently verified full-release manifest digest (required for ETQ gate)")
     parser.add_argument("--etq-bundle", metavar="DIR", help="local SONIFICATION build:v3 output, read-only")
     parser.add_argument("--numerical", action="store_true", help="v0.2 NumPy spectral eigen diagnostics")
     parser.add_argument("--stability", action="store_true", help="v0.3 optional NumPy/SciPy stability report")
@@ -29,6 +31,8 @@ def main():
     args = parser.parse_args()
     if sum(bool(x) for x in (args.evidence_out, args.verify_evidence, args.validate_etq)) > 1:
         parser.error("choose only one v0.5 action")
+    if args.trusted_etq_manifest_sha256 and not (args.validate_etq or args.etq_bundle):
+        parser.error("--trusted-etq-manifest-sha256 requires an ETQ evidence/validation action")
     if args.evidence_out or args.verify_evidence or args.validate_etq:
         if (args.full or args.numerical or args.stability or args.no_nonbacktracking
                 or args.controls or args.swaps != 16 or args.epsilon != 0.01):
@@ -38,19 +42,22 @@ def main():
         if args.validate_etq:
             if args.etq_bundle or args.control_samples != 16 or args.control_swaps != 16:
                 parser.error("--validate-etq is standalone")
-            result = verify_etq_release(args.validate_etq)
+            result = verify_etq_release(args.validate_etq,
+                                        trusted_manifest_sha256=args.trusted_etq_manifest_sha256)
         elif args.verify_evidence:
             if (args.control_samples != 16 or args.control_swaps != 16
                     or args.control_seed != 303 or args.bootstrap_draws != 256
                     or args.control_variants != "reference,shear-a,shear-b"):
                 parser.error("--verify-evidence replays the settings in the package")
-            result = verify_evidence_package(args.verify_evidence, etq_directory=args.etq_bundle)
+            result = verify_evidence_package(args.verify_evidence, etq_directory=args.etq_bundle,
+                                             trusted_etq_manifest_sha256=args.trusted_etq_manifest_sha256)
         else:
             result = write_evidence_package(
                 args.evidence_out, etq_directory=args.etq_bundle,
                 ensemble_size=args.control_samples, swaps=args.control_swaps,
                 seed=args.control_seed, bootstrap_draws=args.bootstrap_draws,
-                variants=tuple(args.control_variants.split(",")))
+                variants=tuple(args.control_variants.split(",")),
+                trusted_etq_manifest_sha256=args.trusted_etq_manifest_sha256)
         print(json.dumps(result, sort_keys=True, separators=(",", ":"), allow_nan=False))
         return
     control_options_changed = (args.control_samples != 16 or args.control_swaps != 16
