@@ -122,6 +122,20 @@ def validated_read(path: Path) -> bytes:
     return data
 
 
+def python_core_path() -> Path:
+    # Repository checkout: proofs/spark/../../edgewalk/core.py.
+    # Sandbox: /work/edgewalk/core.py (only the needed module was staged).
+    direct = ROOT / "edgewalk" / "core.py"
+    return direct if direct.is_file() else ROOT.parents[1] / "edgewalk" / "core.py"
+
+
+def archived_report_path() -> Path:
+    # Sandbox stages a single report; repository has the original 21-file audit.
+    direct = ROOT / "audit" / "gnatprove.out"
+    return (direct if direct.is_file() else
+            ROOT / "audits" / "2026-10-30-6a8c0c7" / "original" / "gnatprove.out")
+
+
 def validate_sources() -> dict[str, str]:
     found: dict[str, str] = {}
     for name, expected in PROOF_SOURCES.items():
@@ -129,7 +143,7 @@ def validate_sources() -> dict[str, str]:
         if actual != expected:
             raise ValueError("Ada source no longer matches audited proof commit: " + name)
         found[name] = actual
-    archive = ROOT / "audit" / "gnatprove.out"
+    archive = archived_report_path()
     if digest(validated_read(archive)) != ARCHIVED_REPORT_SHA256:
         raise ValueError("archived GNATprove report fingerprint changed or missing")
     return found
@@ -159,7 +173,7 @@ def compare(cases: bytes, expected: bytes, actual: bytes,
         "proofSourceRevision": PROOF_SOURCE_REVISION,
         "adaSourceSha256": source_hashes or dict(PROOF_SOURCES),
         "archivedGnatproveReportSha256": ARCHIVED_REPORT_SHA256,
-        "pythonCoreSha256": digest(validated_read(ROOT / "edgewalk" / "core.py")),
+        "pythonCoreSha256": digest(validated_read(python_core_path())),
         "adaDriverSha256": digest(validated_read(ROOT / "conformance" / "conformance_driver.adb")),
         "adaProofEvidence": "ARCHIVED_48_CHECKS_ZERO_UNPROVED_NOT_RERUN",
         "leanKernelStatus": "NOT_ESTABLISHED_BY_THIS_RUN",
