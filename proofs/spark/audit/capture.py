@@ -168,18 +168,20 @@ def validate_originals(original: Path) -> dict[str, bytes]:
 
 def historical_sources(spark_root: Path, git_root: Path) -> dict[str, bytes]:
     copied = {}
+    # Take *every* reproducibility source from the actual proof commit,
+    # not whatever happens to be checked out when the archive is captured.
     for rel in SNAPSHOT_FILES:
-        raw = read_file(spark_root / rel)
-        if rel in SOURCE_HASHES and digest(raw) != SOURCE_HASHES[rel]:
-            fail("source file hash differs: " + rel)
-        copied[rel] = raw
-    for rel, expected in SOURCE_HASHES.items():
-        original_path = "proofs/spark/" + rel
         command = ["git", "-C", str(git_root), "show",
-                   PROOF_REVISION + ":" + original_path]
+                   PROOF_REVISION + ":proofs/spark/" + rel]
         proc = subprocess.run(command, capture_output=True, check=False)
-        if proc.returncode != 0 or digest(proc.stdout) != expected:
-            fail("historical Git source revision inaccessible/mismatched: " + rel)
+        if proc.returncode != 0:
+            fail("historical proof source is unavailable: " + rel)
+        raw = proc.stdout
+        if rel in SOURCE_HASHES and digest(raw) != SOURCE_HASHES[rel]:
+            fail("historical source fingerprint mismatch: " + rel)
+        if rel in SOURCE_HASHES and digest(read_file(spark_root / rel)) != digest(raw):
+            fail("working Ada source differs from proved Git revision: " + rel)
+        copied[rel] = raw
     return copied
 
 
@@ -257,11 +259,8 @@ def write_archive(evidence: Path, output: Path, spark: Path = SPARK,
         with destination.open("xb") as stream:
             stream.write(raw)
     return {"status": "ARCHIVE_CREATED", "path": str(output),
-            "fileCount": len(payload), "originalFileCount": len(originals())}
+            "fileCount": len(payload), "originalFileCount": len(ORIGINAL_FILES)}
 
-
-def originals():
-    return ORIGINAL_FILES
 
 
 def verify_archive(output: Path, spark: Path = SPARK, repo: Path = ROOT) -> dict:
@@ -274,7 +273,7 @@ def verify_archive(output: Path, spark: Path = SPARK, repo: Path = ROOT) -> dict
             or manifest.get("proofSourceRevision") != PROOF_REVISION
             or manifest.get("reportedAtUtc") != REPORT_TIME):
         fail("invalid archive manifest")
-    payload = payload_files(output / "original", spark, repo)
+    payload = payload_files(output / "original", output / "sources", repo)
     if manifest.get("files") != {
             p: {"sha256": digest(b), "byteLength": len(b)}
             for p, b in sorted(payload.items())}:
