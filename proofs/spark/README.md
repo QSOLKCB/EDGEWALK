@@ -83,3 +83,29 @@ project. Both must pass for separate runtime and proof assertions.
 
 The next v0.7.2 milestone may add canonical differential comparison cases,
 but must not label tested Python conformance a formal Python proof.
+
+
+## Isolated Alire 2.1.1 toolchain prefix
+
+The verifier now accepts the Alire installation at `$HOME/opt/edgewalk-spark-toolchain`.
+It can accept another direct child of `$HOME/opt` using the environment variable:
+
+```bash
+export EDGEWALK_SPARK_TOOLCHAIN="$HOME/opt/edgewalk-spark-toolchain"
+cd proofs/spark
+bash scripts/verify.sh
+```
+
+It mounts only the configured toolchain tree, read-only at its original absolute
+path. The rest of `/home` is a new, private tmpfs, and the verifier never
+copies compiler executables into `/usr`. The full Alire prefix remains present
+for GNATprove's `libexec/spark` helpers and relative resources.
+
+The installed `bin/gnatmake`, `bin/gprbuild`, and `bin/gnatprove` must resolve
+inside the approved prefix; the sandbox uses those executables, not Ubuntu's
+older system compiler. Tool versions and SHA-256 fingerprints are captured
+in evidence. A recorded digest is **not** vendor authentication.
+
+Missing sandbox, tooling, exact versions or proof evidence means NOT_RUN or
+UNVERIFIED. GNATprove results remain REVIEW_REQUIRED pending human audit.
+No `sudo`, symlinks into `/usr`, source changes or GitHub Actions are needed.

@@ -90,3 +90,11 @@ Never report runtime compilation as contract proof; GNATprove must genuinely
 analyze both package sources, all unproved or justified obligations must be
 listed, and exact toolchain versions must be captured. Run tooling in an
 isolated offline environment without host credentials. No GitHub Actions.
+
+
+## v0.7.1 Alire prefix compatibility
+
+Support the pinned Alire toolchain under `~/opt/edgewalk-spark-toolchain`
+without moving binaries into `/usr`. GNATprove, GPRbuild and GNAT compilation
+must stay inside the read-only-toolchain offline Bubblewrap sandbox.
+No host HOME/credentials or network; no fabricated proof PASS.
