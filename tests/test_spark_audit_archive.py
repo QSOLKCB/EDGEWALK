@@ -144,6 +144,29 @@ class SparkAuditArchiveTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "unexpected files"):
                 a.verify_archive(archive)
 
+    def test_rehashed_forged_provenance_manifest_is_rejected(self):
+        a = archive_module()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            evidence = root / "evidence"
+            evidence.mkdir()
+            synthetic_evidence(evidence)
+            archive = root / "audit"
+            a.write_archive(evidence, archive)
+            manifest_path = archive / "manifest.json"
+            manifest = json.loads(manifest_path.read_text())
+            manifest["vendorArchiveAuthentication"] = "FORGED_VENDOR_SIGNATURE"
+            manifest_path.write_bytes(a.canonical(manifest))
+            checksum_path = archive / "SHA256SUMS.txt"
+            names = sorted(path for path in manifest["files"])
+            names.append("manifest.json")
+            checksum_path.write_text("".join(
+                a.digest((archive / name).read_bytes()) + "  " + name + "\n"
+                for name in sorted(names)
+            ))
+            with self.assertRaisesRegex(ValueError, "metadata"):
+                a.verify_archive(archive)
+
     def test_claims_distinguish_ada_lean_and_vendor_provenance(self):
         text = archive_module().review_text().decode("utf-8")
         self.assertIn("NOT a statement", text)
