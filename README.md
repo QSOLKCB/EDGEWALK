@@ -1,35 +1,49 @@
 # EDGEWALK
 
-Deterministic laboratory for **Golay quantum error correction**, Tanner graph edge walks, **ETQ-303-inspired** event scheduling, and spectral stability experiments.
+Deterministic Golay quantum error correction, Tanner and ETQ-303 edge-walk experiments, and spectral-algebra diagnostics. **This is a mathematical research laboratory, not evidence that spacetime is quantum-error-correcting.**
 
-**Research status:** mathematical/software methods only. No evidence is claimed for physical spacetime error correction, dark-matter alternatives, dark-energy alternatives, or multidimensional spacetime.
+## v0.1 baseline (unchanged)
 
-## v0.1.0: executable reference baseline
+Python 3.10+, no default third-party dependencies:
 
-The first stage constructs the classical binary Golay [23,12,7] code from the cyclic generator polynomial, derives its 11-row dual parity checks and uses those checks as **both** X and Z stabilizers of the CSS quantum Golay [[23,1,7]] code. It constructs a 45-node, 176-edge combined X/Z Tanner graph. A reproducible 303-event **auxiliary schedule** chooses valid edges, records event addresses, and commits results to a domain-separated SHA-256 receipt.
+~~~bash
+python -m edgewalk
+python -m edgewalk --full
+python -m unittest discover -s tests -v
+~~~
 
-The schedule is *inspired by*, but is **not**, the canonical ETQ-303 event document. It does not copy, rewrite, or replace the immutable ETQ-101/303 protocols and does not treat the original CRT support traversal as a graph-edge walk.
+The baseline proves Golay CSS [[23,1,7]] invariants, constructs a 45-node Tanner graph, and commits to a 303-step ETQ-inspired auxiliary schedule.
 
-Run with Python 3.10+ and no third-party dependencies:
+## v0.2 ETQ-303 integration (read-only)
 
-    python -m edgewalk
-    python -m edgewalk --full
-    python -m unittest discover -s tests -v
+Obtain the published **ETQ-303 v3.0.0** release output from [SONIFICATION](https://github.com/QSOLKCB/SONIFICATION), following its own build instructions and verification:
 
-Default output is a compact JSON summary including the receipt. The --full form adds all 303 adjacency-verified transitions.
+~~~bash
+# Run in a local SONIFICATION checkout; no GitHub Actions
+npm test
+npm run verify
+npm run build:v3
+# In an EDGEWALK checkout, point to the generated directory
+python -m edgewalk --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0
+# Optional floating-point Laplacian / adjacency eigenspectra:
+python -m pip install numpy
+python -m edgewalk --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0 --numerical
+~~~
 
-## Foundational references
+The ETQ adapter **requires all four** original files: contract.json, events.json, graph.json and manifest.json. The small examples/etq-303.v3.canonical.json contract is not a substitute for a built output bundle. No network is used by EDGEWALK at runtime, and no upstream artifacts are modified.
 
-- QEC toolkit: https://github.com/QSOLKCB/QEC
-- ETQ-303 canonical source: https://github.com/QSOLKCB/SONIFICATION
-- ETQ-303 v3 DOI: https://doi.org/10.5281/zenodo.21455181
+The adapter validates the published event and lifted-edge domain-separated commitments, manifest file checksums, canonical event sequence, Gaussian-unit symbols, graph indices, adjacency and connectivity. A separate deterministic receiver produces *actual graph-edge walks*. The original CRT support traversal is **not a graph walk**.
 
-Read AGENTS.md, docs/INVARIANTS.md and docs/RESEARCH_PLAN.md before extending the experiment. No GitHub Actions are configured. Run the local test suite before opening or merging a PR.
+The v0.2 report includes exact graph spectral moments, non-backtracking state and transition counts, degree profiles, 303-step walk coverage, and **degree-preserving rewiring controls**. Controls are graphs, not valid Golay CSS codes or canonical ETQ products. Exact EDGEWALK comparison receipts exclude NumPy results; optional float64 eigenvalue/IPR output is auxiliary and solver-dependent.
 
-## Scope boundary
+**Interpretation limit:** A numerical resemblance is not a demonstrated spacetime connection, dark matter/energy alternative, or statistically significant result. No coupled physical equations are used. The current null control is a *single deterministic graph rewire*, not a distribution of matched random ensembles; no p-values are claimed.
 
-Mathematically equivalent implementation choices are not automatically physically equivalent theories. Golay code distance is not a cosmological observable; algebraic vector-space dimensions are not spacetime dimensions; spectra computed from differently constructed graphs must not be compared without controls. Negative/null outcomes are first-class results.
+## Roadmap, contracts and licensing
 
-## Licensing
+See [docs/INVARIANTS.md](docs/INVARIANTS.md), [docs/INVARIANTS_V02.md](docs/INVARIANTS_V02.md), [docs/RESEARCH_PLAN.md](docs/RESEARCH_PLAN.md), and [AGENTS.md](AGENTS.md) for strict mathematical and epistemic guardrails.
 
-EDGEWALK is Apache-2.0 (see LICENSE). Other QSOL projects have their own licence/identity; use references or independently authored adapters rather than copying their source or changing their released contracts.
+Source references:
+- [QEC](https://github.com/QSOLKCB/QEC)
+- [SONIFICATION ETQ-303](https://github.com/QSOLKCB/SONIFICATION) — v3.0.0 original DOI [10.5281/zenodo.21455181](https://doi.org/10.5281/zenodo.21455181)
+
+EDGEWALK is Apache-2.0. SONIFICATION upstream remains its own MPL-2.0 project; integration reads generated output, does not copy its implementation, and keeps upstream canonical hashes unchanged. No GitHub Actions are added.
