@@ -109,3 +109,38 @@ in evidence. A recorded digest is **not** vendor authentication.
 Missing sandbox, tooling, exact versions or proof evidence means NOT_RUN or
 UNVERIFIED. GNATprove results remain REVIEW_REQUIRED pending human audit.
 No `sudo`, symlinks into `/usr`, source changes or GitHub Actions are needed.
+
+
+## Alire crate release vs executable banner (2026-10-30)
+
+Alire's `gprbuild=26.0.1` package reports
+`GPRBUILD 26.0.0 (2026-04-15) (x86_64-pc-linux-gnu)` when its
+executable is queried with `--version`. These are distinct identifiers.
+Never weaken the release pin to `26.0.0` or accept a matching substring
+somewhere in stdout. `toolchain-lock.json` records both the exact pinned
+Alire `crateVersions` and the observed, explicitly approved
+`reportedExecutableVersions` for GNATMAKE, GPRBUILD and GNATprove.
+
+Inside the offline Bubblewrap execution,
+`scripts/check_toolchain.py` checks that the lock retains approved crate
+versions and that the FIRST LINE of each actual executable capture
+starts with its correct full banner followed by whitespace/end-of-line.
+Missing, altered, or misleading version output fails before Ada build.
+Executable SHA-256 and vendor archive provenance are recorded separately;
+a passing banner test does not certify origin or Ada proof obligations.
+
+The pre-existing `test_physical_model_and_report_replay` was also adjusted
+to submit canonically serialized tampered JSON. Noncanonical input continues
+to fail at the CLI parser; canonical tampering must produce verified=false.
+
+After merging this patch, rerun from a fresh `main` checkout:
+
+```bash
+cd ~/EDGEWALK
+python3 -m unittest discover -s tests -v
+cd proofs/spark
+bash scripts/verify.sh
+```
+
+Do not treat an absence of `SPARK_STATUS=UNVERIFIED` as proof discharge.
+Review the actual GNATprove transcript and all remaining obligations.
