@@ -93,10 +93,11 @@ text outputs for inspection; they cannot produce a success receipt.
 The saved receipt can be independently replayed without rerunning Ada:
 
 ```bash
-python3 conformance/bridge.py verify \\
-  --cases conformance-output/cases.txt \\
-  --expected conformance-output/python-expected.txt \\
-  --actual conformance-output/ada-observed.txt \\
+# From proofs/spark in an uninstalled repository checkout.
+PYTHONPATH=../.. python3 conformance/bridge.py verify \
+  --cases conformance-output/cases.txt \
+  --expected conformance-output/python-expected.txt \
+  --actual conformance-output/ada-observed.txt \
   --receipt conformance-output/receipt.json
 ```
 
