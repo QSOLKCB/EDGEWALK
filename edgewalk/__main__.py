@@ -7,6 +7,12 @@ from .core import code_parameters, walk_receipt
 def main():
     parser = argparse.ArgumentParser(description="EDGEWALK deterministic research lab")
     parser.add_argument("--full", action="store_true", help="include all v0.1 walk events")
+    parser.add_argument("--physical-model", metavar="MODEL_ID",
+                        help="v0.6 evaluate an explicitly registered, provenance-pinned physical adapter")
+    parser.add_argument("--physical-data", metavar="CSV",
+                        help="optional pinned observation CSV (checksum must match registered source)")
+    parser.add_argument("--verify-physical-report", metavar="FILE",
+                        help="replay and verify a complete v0.6 JSON report")
     parser.add_argument("--evidence-out", metavar="NEW_DIR",
                         help="v0.5 create a fresh replayable evidence package")
     parser.add_argument("--verify-evidence", metavar="DIR",
@@ -29,6 +35,37 @@ def main():
     parser.add_argument("--control-variants", default="reference,shear-a,shear-b",
                         help="v0.4 comma-separated Golay basis variants")
     args = parser.parse_args()
+    if args.physical_model or args.verify_physical_report:
+        if (args.physical_model and args.verify_physical_report
+                or args.evidence_out or args.verify_evidence or args.validate_etq
+                or args.etq_bundle or args.controls or args.stability or args.numerical
+                or args.no_nonbacktracking or args.full or args.swaps != 16
+                or args.epsilon != 0.01 or args.control_samples != 16
+                or args.control_swaps != 16 or args.control_seed != 303
+                or args.bootstrap_draws != 256
+                or args.control_variants != "reference,shear-a,shear-b"
+                or args.trusted_etq_manifest_sha256):
+            parser.error("v0.6 physical actions are separate from ETQ/QEC modes")
+        from .physical import run_physical_model, verify_physical_report
+        if args.physical_model:
+            report = run_physical_model(args.physical_model, observations_path=args.physical_data)
+            print(json.dumps(report, sort_keys=True, separators=(",", ":"), allow_nan=False))
+        else:
+            from pathlib import Path
+            path = Path(args.verify_physical_report)
+            if not path.is_file() or path.is_symlink() or path.stat().st_size > 65536:
+                parser.error("missing/symlinked/oversized physical report")
+            try:
+                report = json.loads(path.read_bytes().decode("utf-8"))
+            except (UnicodeError, json.JSONDecodeError) as exc:
+                parser.error("invalid physical report JSON: " + str(exc))
+            valid = verify_physical_report(report, observations_path=args.physical_data)
+            print(json.dumps({"verified": valid, "model": "kepler-earth-anchored-v1"}))
+            if not valid:
+                raise SystemExit(1)
+        return
+    if args.physical_data:
+        parser.error("--physical-data requires a v0.6 physical action")
     if sum(bool(x) for x in (args.evidence_out, args.verify_evidence, args.validate_etq)) > 1:
         parser.error("choose only one v0.5 action")
     if args.trusted_etq_manifest_sha256 and not (
