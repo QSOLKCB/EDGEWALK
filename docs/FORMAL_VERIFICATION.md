@@ -28,8 +28,9 @@ kernel validates the text.
 
 ## Trust chain and exact commands
 
-From an EDGEWALK checkout with network access for initial, explicitly
-requested mathlib dependency provisioning and a working bubblewrap sandbox:
+From an EDGEWALK checkout with a locally installed pinned Lean/Lake
+toolchain, independently provisioned offline Mathlib sources, reviewed
+lake-manifest.json, and a working bubblewrap user namespace:
 
 ~~~bash
 python -m unittest discover -s tests -v
@@ -38,12 +39,15 @@ python3 scripts/static_audit.py
 bash scripts/verify.sh
 ~~~
 
-The script rejects missing/incompatible Lean version, missing Lake/bwrap,
-forbidden syntax and changed source pins. It then resolves exact Mathlib
-revision, obtains the cache, builds all four modules and performs
-\`lake check --paranoid\`. Review/commit the generated lake-manifest.json
-after successful dependency resolution; inspect the checker output and
-tool versions. Do not replace an absent manifest with fabricated content.
+The script fails closed without a trusted /usr/bin/bwrap, locally installed
+toolchain, previously reviewed Lake lockfile and staged offline dependencies.
+It copies proofs into an isolated writable workspace, then runs the source
+audit, all module builds and lake check --paranoid entirely INSIDE bubblewrap
+with the network unshared and the host HOME/credentials inaccessible. Dependency
+provisioning is a separate, independently trusted procedure; never run
+contributor-controlled Lake updates/downloads on a credential-bearing host.
+Review/commit the genuine generated lake-manifest.json after independent
+dependency resolution. Do not fabricate a lockfile or a checker transcript.
 The verifier emits a PASS marker **only** after the actual kernel accepts
 every proof, never after the static scanner alone.
 

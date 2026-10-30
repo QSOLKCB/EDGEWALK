@@ -253,3 +253,14 @@ theorem describes the declared ETQ phase/support convention, NOT the physical
 existence of a quantum gate or spacetime field. Neither proves the existing
 Python/Node implementations correct; differential conformance is a separate
 v0.7.2 milestone. See [FORMAL_VERIFICATION](docs/FORMAL_VERIFICATION.md).
+
+### v0.7 proof-verifier security gate
+
+All Lean builds and paranoid checking now run under an **offline bubblewrap
+sandbox**, including the source audit. No contributor Lean code is elaborated
+on the reviewer's credential-bearing host. The verifier requires previously
+reviewed `lake-manifest.json` and offline Mathlib sources; missing inputs
+result in NOT RUN, not a fabricated proof result. Set up these dependencies
+through a separately trusted, isolated provisioning procedure. The standard
+Python 3.10 regression suite needs no `tomli` package: the auditor checks
+an exact allowlisted Lake configuration. See proofs/lean/README.md.

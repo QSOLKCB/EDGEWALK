@@ -10,3 +10,7 @@
 8. GF(2) theorems are universal characteristic-two identities and dot-product laws; they do NOT establish concrete Golay rank, distance seven, or a decoder FER result. Golay-specific formal matrix certificates remain future work.
 9. No source-audit-only status may be labelled kernel checked. A proof receipt needs toolchain and exact commit identities, full checker transcript and explicit PASS/FAIL/NOT-RUN verdict. No fabricated hashes or execution logs.
 10. All null/negative proof results and unsolved obligations remain visible. Any theorem statement weakened to fit a proof is a contract change subject to review. No cosmological or (3,2) spacetime ontology is inferred.
+
+11. Every operation that can elaborate or execute Lean source—including Lake builds, cache commands and paranoid checking—must remain inside a restricted offline sandbox. No host credentials, HOME, secrets, sockets or writable checkout are mounted. A missing sandbox or offline dependency is NOT RUN, never PASS.
+12. Python 3.10 without tomllib/tomli must retain a dependency-free full regression suite. The auditor requires byte-for-byte approved Lake TOML on that platform, and additionally checks effective parsed configuration on Python 3.11+. Never accept a hash merely because it appears in a comment.
+13. Protect against #eval and similar elaboration-time IO with sandbox isolation as the security boundary; static keyword lint is secondary. Negative controls must include this exploit and missing Python TOML modules.

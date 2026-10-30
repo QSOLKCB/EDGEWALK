@@ -14,15 +14,23 @@ verdict may be claimed until the pinned toolchain actually runs successfully.
 
 ## Verifier (explicit operation, not a GitHub Action)
 
-Requires elan/Lean, Lake, Python 3.10+, bubblewrap with working user namespaces,
-and network access ONLY when first resolving the declared mathematical dependency.
+Requires Python 3.10+ (no Python TOML dependency), elan with an already
+installed pinned Lean/Lake toolchain, and the trusted /usr/bin/bwrap
+sandbox with working user namespaces. Offline Mathlib sources and a
+separately reviewed lake-manifest.json must already be staged in this checkout.
+Any initial dependency provisioning happens outside the mandatory verifier,
+in an independently trusted, isolated environment. Never run a contributor's
+Lake configuration on a credential-bearing host to provision dependencies.
 
     cd proofs/lean
     bash scripts/verify.sh
 
-The script checks source pins/forbidden constructs, executes lake update, fetches
-the pinned Mathlib cache, builds the Lean project, and performs
-lake check --paranoid. A static pass is NOT a theorem-proof acceptance.
+The script creates a temporary copy of the proof workspace, then executes
+the Python audit, all five explicit Lake targets and lake check --paranoid
+INSIDE a bubblewrap boundary. The container has no network, no host HOME,
+credentials or other projects mounted, a private writable HOME and /tmp,
+and a read-only Lean toolchain/system runtime. There is no unsandboxed Lake
+update, cache fetch, build or proof elaboration. A static pass is NOT kernel acceptance.
 The script stops with an error and no passing proof receipt on any failure.
 
 ## Proof scope

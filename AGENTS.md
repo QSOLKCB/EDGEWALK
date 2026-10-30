@@ -71,3 +71,13 @@ Theorem statements are scoped to finite ETQ algebra and GF(2) identities:
 concrete Golay matrix rank/distance and Python/Node executable conformance
 are not proved in v0.7. No network access in ordinary runtime and no GitHub
 Actions or upstream changes.
+
+## v0.7 P1 elaboration security / P2 Python 3.10 portability
+
+Never execute Lake update, cache fetching, Lean compilation or source audit
+on the reviewer's credential-bearing host when checking contributor proofs.
+All proof-source processing runs inside an offline bubblewrap sandbox with
+no host HOME, tokens or writable checkout. Source-only lint against #eval is
+not a security boundary. The Python 3.10 default test suite must not require
+tomli or any new third-party dependency. Do not mark the PR merge-ready
+without a genuine isolated kernel transcript and reviewed lockfile.
