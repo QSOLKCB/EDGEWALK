@@ -92,6 +92,23 @@ class SparkContractTests(unittest.TestCase):
         self.assertIn("SPARK_STATUS=REVIEW_REQUIRED", shell)
         self.assertNotIn("SPARK_STATUS=PASS", shell)
 
+    def test_ada_verifier_sandboxes_compilation_and_retains_evidence(self):
+        shell = (SPARK / "scripts" / "verify.sh").read_text()
+        self.assertIn("/usr/bin/bwrap --unshare-all", shell)
+        self.assertIn("--clearenv", shell)
+        self.assertIn("--tmpfs /home", shell)
+        self.assertIn("--tmpfs /root", shell)
+        self.assertIn("--tmpfs /tmp", shell)
+        self.assertIn("--ro-bind /usr /usr", shell)
+        self.assertIn("cp -a -- src tests scripts *.gpr toolchain-lock.json", shell)
+        self.assertIn("gnatprove -P edgewalk_spark.gpr", shell)
+        self.assertIn("sandbox_exit=$?", shell)
+        self.assertIn("evidence/gnatprove-assessment.json", shell)
+        self.assertGreater(shell.index("gnatprove -P edgewalk_spark.gpr"),
+                           shell.index("/usr/bin/bwrap --unshare-all"))
+        self.assertNotIn("SPARK_STATUS=PASS", shell)
+        self.assertNotIn("VERIFIED=PASS", shell)
+
     def test_assessor_missing_or_malformed_reports_fail_closed(self):
         assess = assessor()
         for payload in ("", "GNATprove succeeded", "Total   0"):
