@@ -44,3 +44,13 @@
 14. Capture executable SHA-256 and exact versions as observational evidence,
     not a certified vendor release. Version failures or unproved contracts
     remain reported; never emit automatic proof PASS.
+
+
+15. Distinguish Alire crate release identity from the installed executable's
+    reported version. Keep `gprbuild=26.0.1` pinned even though the
+    corresponding GPRBUILD banner reports `26.0.0`. The checker must
+    validate the exact approved first-line banner and reject substring
+    tricks, wrong executable versions, changed crate pins or missing files.
+16. The physical CLI semantic-tamper regression must submit canonical JSON.
+    Noncanonical JSON rejection remains fail-closed and independent.
+    Neither kind of test is an Ada proof result.

@@ -46,8 +46,12 @@ package body Edgewalk_Reference with SPARK_Mode => On is
             Result_Bit := 1 - Result_Bit;
          end if;
          Remaining := Remaining / 2;
-         pragma Loop_Invariant (Result_Bit in Bit);
-         pragma Loop_Invariant (Remaining <= Word_23'Last);
+         --  The constrained types already guarantee valid bit/word ranges.
+         --  Preserve the meaningful zero-input postcondition through the
+         --  loop instead of asserting tautological subtype membership.
+         pragma Loop_Invariant
+           ((A /= 0 and then B /= 0)
+             or else (Remaining = 0 and then Result_Bit = 0));
       end loop;
       return Result_Bit;
    end Parity;
