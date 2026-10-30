@@ -1,9 +1,10 @@
 # EDGEWALK v0.7.1 — Original Evidence Capture
 
-This directory holds a **review of the user-supplied report** and a safe,
-standard-library-only local archival tool. It does **not** currently contain
-the original GNATprove evidence files. Do not fill the originals folder with
-transcribed text or fabricated output.
+This directory contains the reviewed run and standard-library evidence capture tool.
+The adjacent `../audits/2026-10-30-6a8c0c7/` directory now contains **all 21
+original-byte evidence/archive files** extracted from the operator-supplied ZIP.
+All 21 uploaded Git blob hashes match the ZIP's original bytes. Do not rewrite
+or replace them with reconstructed terminal transcripts.
 
 ## Requirements
 
@@ -14,14 +15,14 @@ transcribed text or fabricated output.
 - Python 3.10+; no network or additional packages required.
 - No need to rerun GNATprove or install any tool to capture existing files.
 
-## Commands (run in an EDGEWALK checkout)
+## Commands for independent recapture in a NEW directory
 
 ```bash
 cd ~/EDGEWALK
 python3 proofs/spark/audit/capture.py \
-  --capture proofs/spark/audits/2026-10-30-6a8c0c7
+  --capture /tmp/edgewalk-spark-audit-recapture
 python3 proofs/spark/audit/capture.py \
-  --verify proofs/spark/audits/2026-10-30-6a8c0c7
+  --verify /tmp/edgewalk-spark-audit-recapture
 python3 -m unittest discover -s tests -v
 ```
 
@@ -31,12 +32,10 @@ the GNATprove report header, per-category totals, per-subprogram coverage,
 zero justified/unproved, compiler/prover exit code, runtime self-test, and
 the original assessor's `REVIEW_REQUIRED` status. A mismatch stops capture.
 
-For GitHub upload, commit the freshly generated
-`proofs/spark/audits/2026-10-30-6a8c0c7/` directory onto this audit PR
-branch. Keep all files **exactly as captured**. Unlike
-`proofs/spark/evidence/`, the reviewed audit folder is not gitignored.
-Do not add binaries, credentials, full HOME directories, caches, or tool
-archives under this audit PR.
+The original archive has **already been added to the GitHub audit branch**.
+Do not rerun capture into that existing directory, because the script
+intentionally rejects overwriting it. The generated files are not gitignored;
+no binaries, credential files, caches, or complete toolchain archives were added.
 
 ## Included archive source snapshot
 
@@ -53,37 +52,34 @@ the manifest alone is not a publisher authenticity signature.
 ## Status boundaries
 
 - **GNATprove run:** reported 48 checks, 0 unproved, 0 justified.
-- **Original file upload:** not yet performed.
+- **Original file upload:** complete — 21 exact-match Git blobs (9 original
+  evidence files, 9 source snapshot files, manifest, SHA256SUMS, REVIEW).
 - **Toolchain identity:** recorded entry-point fingerprints, not externally
   authenticated original release archives.
 - **Lean kernel proofs:** not part of this SPARK audit.
-- **Python:** 75 runtime tests reported passing, not formally proved equivalent.
+- **Python:** 82 audit-branch tests reported passing; not formally proved equivalent.
 
 The synthetic fixture in `tests/test_spark_audit_archive.py` only tests the
 capture/replay code; it is **not** an authentic GNATprove run.
 
-## Add the actual local evidence to this audit PR
+## Audit import verified
 
-If you are on a detached HEAD after earlier verification, first switch to
-the existing audit branch (ignored local proofs/spark/evidence/ is retained):
+The operator-supplied ZIP had SHA-256:
+
+`643c10e8f5d4ec13bfee91451198d3d3c4ca2c17939f120256e1af39cf20265e`
+
+The ZIP passed manifest/SHA256SUMS validation, and all 21 expanded Git blobs
+were checked against the original ZIP byte sequences by their Git object SHA-1.
+The verified artifact is directly browsable at
+[2026-10-30-6a8c0c7](../audits/2026-10-30-6a8c0c7).
+
+To independently replay the committed archive:
 
 ```bash
-cd ~/EDGEWALK
-git fetch origin audit/v0.7.1-spark-proof-evidence
-git switch -c audit/v0.7.1-spark-proof-evidence --track origin/audit/v0.7.1-spark-proof-evidence
-
-python3 proofs/spark/audit/capture.py \
-  --capture proofs/spark/audits/2026-10-30-6a8c0c7
 python3 proofs/spark/audit/capture.py \
   --verify proofs/spark/audits/2026-10-30-6a8c0c7
-
-# Inspect the captured originals for confidential paths, secrets or
-# other content before publishing. Do not rewrite them: abort upload if unsafe.
-git status --short
-git add proofs/spark/audits/2026-10-30-6a8c0c7
-git commit -m "evidence: archive original GNATprove v0.7.1 48-check run"
-git push
 ```
 
-The transcript and version files are currently absent from this PR by design.
-Only after the byte-identical capture is pushed should the PR leave Draft.
+Expected output includes `"status":"ARCHIVE_REPLAY_VERIFIED"` and
+`"reportedChecks":48`. Toolchain vendor authentication and the separate
+Lean kernel proof remain outside the archive's claims.
