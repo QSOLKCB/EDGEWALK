@@ -47,3 +47,27 @@ Source references:
 - [SONIFICATION ETQ-303](https://github.com/QSOLKCB/SONIFICATION) — v3.0.0 original DOI [10.5281/zenodo.21455181](https://doi.org/10.5281/zenodo.21455181)
 
 EDGEWALK is Apache-2.0. SONIFICATION upstream remains its own MPL-2.0 project; integration reads generated output, does not copy its implementation, and keeps upstream canonical hashes unchanged. No GitHub Actions are added.
+
+
+## v0.3 Spectral Stability Engine (optional)
+
+Install the numerical extras:
+
+    python -m pip install -e '.[stability]'
+    python -m unittest discover -s tests -v
+
+Generate an unmodified SONIFICATION ETQ-303 v3 bundle using its own npm test, verify and build:v3 commands. Then in EDGEWALK:
+
+    python -m edgewalk --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0 --stability
+
+Optional skip of the large sparse non-backtracking solve:
+
+    python -m edgewalk --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0 --stability --no-nonbacktracking
+
+The read-only upstream adapter verifies ETQ source commitments before this engine runs. The v0.2 comparison receipt SHA-256 remains unchanged by the stability flag. All floats live in stabilityAuxiliary, which is NOT identity-bearing.
+
+The engine computes directed-edge Hashimoto eigenmodes with residuals and qualified IPR; Bethe Hessian spectra; complete clustered Laplacian eigenspace projectors; an exact ETQ Cartesian topology check followed by the numeric {lambda,lambda+3,lambda+3} test; isolated X- and Z-channel scalar sum-product BP Jacobians with a fixed-point residual gate; and paired positive vertex-potential perturbations against degree-preserving graph-only controls.
+
+These are mathematical diagnostics. The BP proxy is not quantum decoding performance; a single deterministic control is not a null distribution; partial spectral samples are not full spectra. No physical cosmology interpretation is implied. See docs/INVARIANTS_V03.md.
+
+Integration gate: tests using synthetic 303-state Cartesian graphs validate the mathematics and code paths, NOT the original published ETQ-303 source identity. A verified run against the actual SONIFICATION artifact bundle remains mandatory for a real end-to-end result. No GitHub Actions are added.

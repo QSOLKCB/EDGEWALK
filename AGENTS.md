@@ -18,3 +18,8 @@ Build an auditable cross-domain graph-stability experiment that separates exact 
 
 ## Review format
 Findings P0/P1/P2, exact reproduction, minimal correction, tests, and a verdict. Preserve negative findings. Document every new mapping and control group.
+
+
+## v0.3 numerical controls
+
+Read docs/INVARIANTS_V03.md. Never mix X/Z CSS channels for scalar BP, infer stability at a non-fixed trial point, label partial eigenpairs as full spectra, or place floating eigenvalues in canonical receipts. Preserve failing numerical tests when fixing a defect.
