@@ -32,6 +32,19 @@ class PhysicalCLITests(unittest.TestCase):
             self.assertNotEqual(rejected.returncode, 0)
             self.assertFalse(json.loads(rejected.stdout)["verified"])
 
+    def test_replay_rejects_duplicate_keys_and_noncanonical_json(self):
+        root = Path(__file__).resolve().parents[1]
+        with TemporaryDirectory() as tmp:
+            report_path = Path(tmp)/"report.json"
+            for payload in ('{"schema":"fake","schema":"fake"}',
+                            '{"schema": "fake"}'):
+                report_path.write_text(payload, encoding="utf-8")
+                run = subprocess.run(
+                    [sys.executable, "-m", "edgewalk", "--verify-physical-report",
+                     str(report_path)], cwd=root, capture_output=True, text=True)
+                self.assertNotEqual(run.returncode, 0)
+                self.assertIn("invalid physical report JSON", run.stderr)
+
     def test_unsupported_model_rejected_by_cli(self):
         root = Path(__file__).resolve().parents[1]
         result = subprocess.run([sys.executable, "-m", "edgewalk", "--physical-model",
