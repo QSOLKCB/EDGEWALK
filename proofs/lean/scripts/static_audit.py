@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed SOURCE audit, not a Lean compiler or kernel proof."""
+"""Fail-closed Lean source audit. A pass is NOT a kernel verification."""
 from __future__ import annotations
 
 import argparse
@@ -7,10 +7,19 @@ from pathlib import Path
 import re
 import sys
 
+try:
+    import tomllib
+except ModuleNotFoundError:
+    # Python 3.10 support; the verifier requires an actual TOML parser.
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError:
+        raise SystemExit("Install Python >=3.11 or 'tomli' for proof-source auditing")
+
 ROOT = Path(__file__).resolve().parents[1]
-LEAN_DIR = ROOT / "Edgewalk"
 PIN = "56a005855ea17e0b0958f73ec801ae140b0a1679"
 TOOLCHAIN = "leanprover/lean4:v4.35.0"
+MATHLIB_URL = "https://github.com/leanprover-community/mathlib4"
 REQUIRED = {
     "CRT.lean": ("address_injective", "inverse_right", "inverse_left",
                  "address_bijective"),
@@ -21,8 +30,7 @@ REQUIRED = {
     "GF2.lean": ("self_add_zero", "xor_cancel", "dot_symmetric",
                  "dot_add_left", "dot_duplicate_zero"),
 }
-# No proof holes, arbitrary axioms, compiler-backed decision bypasses, or
-# unsafe/meta proof construction are permitted in this v0.7 proof project.
+ROOT_IMPORTS = "".join(f"import Edgewalk.{name[:-5]}\n" for name in REQUIRED)
 BLOCKED = re.compile(
     r"\b(?:sorry|admit|axiom|unsafe|native_decide|run_tac|"
     r"declare_syntax_cat|set_option\s+autoImplicit)\b"
@@ -34,16 +42,32 @@ def audit(root: Path = ROOT) -> list[str]:
     lean_root = root / "Edgewalk"
     toolchain = root / "lean-toolchain"
     config = root / "lakefile.toml"
-    if not toolchain.is_file() or toolchain.read_text().strip() != TOOLCHAIN:
+    if not toolchain.is_file() or toolchain.read_text(encoding="utf-8").strip() != TOOLCHAIN:
         errors.append("Lean toolchain pin differs from v4.35.0")
     if not config.is_file():
         errors.append("missing Lake config")
     else:
-        source = config.read_text()
-        if PIN not in source or "mathlib4" not in source:
-            errors.append("Mathlib commit pin missing or changed")
-        if re.search(r'rev\s*=\s*"(?:master|main|latest)"', source):
-            errors.append("floating dependency branch forbidden")
+        try:
+            parsed = tomllib.loads(config.read_text(encoding="utf-8"))
+        except (tomllib.TOMLDecodeError, UnicodeError):
+            errors.append("invalid Lake TOML configuration")
+        else:
+            requires = parsed.get("require")
+            if (not isinstance(requires, list) or len(requires) != 1
+                    or requires[0] != {"name": "mathlib", "git": MATHLIB_URL, "rev": PIN}):
+                errors.append("effective Mathlib URL/revision/dependency pin changed")
+            if (parsed.get("name") != "edgewalk_proofs"
+                    or parsed.get("defaultTargets") != ["Edgewalk"]
+                    or parsed.get("lean_lib") != [{"name": "Edgewalk"}]):
+                errors.append("Lake root/build targets changed")
+    root_module = root / "Edgewalk.lean"
+    if (not root_module.is_file()
+            or root_module.read_text(encoding="utf-8") != ROOT_IMPORTS):
+        errors.append("root module must import all four expected proof modules, unchanged")
+    expected_files = set(REQUIRED)
+    actual_files = {p.name for p in lean_root.glob("*.lean")} if lean_root.is_dir() else set()
+    if actual_files != expected_files:
+        errors.append("Lean proof module file set differs from approved list")
     for name, symbols in REQUIRED.items():
         file = lean_root / name
         if not file.is_file():
@@ -69,7 +93,7 @@ def main() -> int:
             print(" - " + message)
         return 1
     print("SOURCE_AUDIT=PASS (NOT KERNEL VERIFIED)")
-    print("Kernel acceptance requires lake build AND lake check --paranoid.")
+    print("Kernel acceptance requires explicit Lake builds AND lake check --paranoid.")
     return 0
 
 
