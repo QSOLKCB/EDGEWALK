@@ -43,3 +43,16 @@ Verification of the v0.5 package also must reconstruct the complete optional
 statistical summary using recorded bootstrap settings, independently of the
 v0.4 exact receipt. Tamper tests must include recomputation of all dependent
 manifest, receiver and checksum digests.
+
+
+## v0.6 physical-model admission gate
+
+Read docs/INVARIANTS_V06.md and docs/PHYSICAL_PROTOCOL.md before changes.
+A physical model is not eligible on aesthetic/graph resemblance alone: it
+requires specific equations, units, independently available observations,
+a stated data-source digest, a fixed score and null, an explicit physical
+exchangeability/generative model argument, and an honest calibration verdict.
+Unknown models must fail closed. NASA Kepler is a **retrospective example of
+an exactly enumerated conditional label null**, NOT a physically randomized
+dataset or a dark-sector test. Never interpret 2+3 engineering channels as
+(3,2) spacetime signature. Do not alter v0.1–v0.5 receipts or workflows.
