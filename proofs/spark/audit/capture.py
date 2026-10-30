@@ -234,10 +234,8 @@ def payload_files(evidence: Path, spark: Path, repo: Path) -> dict[str, bytes]:
     return result
 
 
-def write_archive(evidence: Path, output: Path, spark: Path = SPARK,
-                  repo: Path = ROOT) -> dict:
-    payload = payload_files(evidence, spark, repo)
-    metadata = {
+def expected_manifest(payload: dict[str, bytes]) -> dict:
+    return {
         "schema": "edgewalk.spark-audit-archive/v1",
         "proofSourceRevision": PROOF_REVISION,
         "reportedAtUtc": REPORT_TIME,
@@ -247,7 +245,12 @@ def write_archive(evidence: Path, output: Path, spark: Path = SPARK,
         "files": {p: {"sha256": digest(b), "byteLength": len(b)}
                   for p, b in sorted(payload.items())},
     }
-    payload["manifest.json"] = canonical(metadata)
+
+
+def write_archive(evidence: Path, output: Path, spark: Path = SPARK,
+                  repo: Path = ROOT) -> dict:
+    payload = payload_files(evidence, spark, repo)
+    payload["manifest.json"] = canonical(expected_manifest(payload))
     payload["SHA256SUMS.txt"] = "".join(
         digest(payload[name]) + "  " + name + "\n"
         for name in sorted(payload)).encode("ascii")
@@ -268,10 +271,7 @@ def verify_archive(output: Path, spark: Path = SPARK, repo: Path = ROOT) -> dict
     manifest = json.loads(as_text(raw_manifest, "manifest.json"),
                           object_pairs_hook=unique_pairs,
                           parse_constant=lambda _: fail("nonfinite JSON"))
-    if (not isinstance(manifest, dict)
-            or manifest.get("schema") != "edgewalk.spark-audit-archive/v1"
-            or manifest.get("proofSourceRevision") != PROOF_REVISION
-            or manifest.get("reportedAtUtc") != REPORT_TIME):
+    if not isinstance(manifest, dict):
         fail("invalid archive manifest")
     payload = payload_files(output / "original", output / "sources", repo)
     expected_paths = set(payload) | {"manifest.json", "SHA256SUMS.txt"}
@@ -279,10 +279,8 @@ def verify_archive(output: Path, spark: Path = SPARK, repo: Path = ROOT) -> dict
                     if p.is_file() or p.is_symlink()}
     if actual_paths != expected_paths:
         fail("archive contains missing or unexpected files")
-    if manifest.get("files") != {
-            p: {"sha256": digest(b), "byteLength": len(b)}
-            for p, b in sorted(payload.items())}:
-        fail("archive file hashes/lengths mismatch")
+    if manifest != expected_manifest(payload):
+        fail("archive metadata or file hashes/lengths mismatch")
     for path, expected in payload.items():
         actual = read_file(output / path)
         if actual != expected:
