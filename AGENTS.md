@@ -27,3 +27,8 @@ Read docs/INVARIANTS_V03.md. Never mix X/Z CSS channels for scalar BP, infer sta
 ## v0.4 control experiments
 
 Read docs/INVARIANTS_V04.md and docs/CONTROL_PROTOCOL.md. Never call a degree-preserving null graph a new Golay code or ETQ root realization. The null sampler and event schedule must be deterministic and local, exact evidence hash-bound, optional statistics excluded from receipt identity. Report the finite Markov-chain nonuniformity caveat rather than claiming validated physical p-values. Add deterministic failing tests and run the full suite.
+
+
+## v0.5 evidence rules
+
+Read docs/INVARIANTS_V05.md and docs/EVIDENCE_PROTOCOL.md. Never claim an authentic ETQ run based on mocked or synthetic data. Verify the complete manifest and observation-receipt byte/semantic lineage before labelling ETQ validated. Evidence packages must be exclusive-create, replay exact v0.4 core, bind report bytes without circular checksums and explicitly classify unvalidated statistical inference. Fail closed on missing provenance. No network calls, write access to upstream repos or GitHub Actions.

@@ -97,3 +97,34 @@ The **exact experiment evidence**, including source and null graph SHA-256 finge
 The **separate exploratory analysis** reports the generated null mean and median, a seeded percentile-bootstrap interval for the null mean, empirical two-sided tail fractions, and Holm-adjusted exploratory tail ranks across the predeclared metric family. Finite-step graph two-switches are *not established as uniform, stationary, independent or exchangeable null draws*. Consequently, these are **not calibrated p-values or frequentist confidence intervals for physics**. A significant cosmological, dark-energy or dark-matter result is **not** claimed. Source graphs have different sizes and degrees; absolute comparisons across Golay and ETQ are descriptive only.
 
 See [CONTROL_PROTOCOL](docs/CONTROL_PROTOCOL.md), [INVARIANTS_V04](docs/INVARIANTS_V04.md) and [RESEARCH_PLAN](docs/RESEARCH_PLAN.md). The existing v0.1, v0.2 and v0.3 command paths and exact receipts are unchanged. No GitHub Actions have been introduced.
+
+
+## v0.5.0 — Experimental Validation & Evidence
+
+The v0.5 release provides a **read-only ETQ-303 v3.0.0 release-integrity gate**, deterministic experiment evidence packages, independent replay commands, calibration diagnostics, and a conservative findings report. Python standard library only for the evidence workflow.
+
+Build the source ETQ bundle in its own SONIFICATION checkout using its published Node workflow; this project never changes those files. A valid v3 bundle contains contract.json, contract.schema.json, events.json, events.csv, events.mid, graph.json, event-atlas.json, observation-receipt.json and manifest.json.
+
+~~~bash
+# Standalone source authenticity gate (requires real SONIFICATION output)
+python -m edgewalk --validate-etq ../SONIFICATION/dist/etq-303-v3.0.0
+
+# Golay-only evidence (ETQ gate explicitly recorded as not-run)
+python -m edgewalk --evidence-out evidence-golay \
+  --control-samples 4 --control-swaps 2 --bootstrap-draws 32
+python -m edgewalk --verify-evidence evidence-golay
+
+# Complete ETQ/Golay integration, only with actual verified source output
+python -m edgewalk --evidence-out evidence-etq \
+  --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0
+python -m edgewalk --verify-evidence evidence-etq \
+  --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0
+
+python -m unittest discover -s tests -v
+~~~
+
+The package is a **new, exclusive directory** (never overwritten), containing experiment.json, validation.json, calibration.json, findings.md, manifest.json and SHA256SUMS.txt. Exact v0.4 evidence is replayed and its original domain-separated hash preserved. The package manifest commits all accompanying artifact bytes; the checksum list excludes itself to prevent a circular hash.
+
+ETQ validation calls the v0.2 cryptographically pinned source adapter and additionally checks **all** manifest-listed output bytes, the signed-by-hash observation receipt core, and receiver SHA-256 commitments. This establishes release-artifact **integrity relative to published commitments**, not authorship, physical provenance or observational validation.
+
+Calibration deliberately fails closed: lag-one and split-half metrics are diagnostic, but the finite two-switch chains are not proven mixed, stationary, independent or exchangeable. No calibrated significance, physics confidence interval, dark-energy conclusion or dark-matter conclusion is reported. See docs/INVARIANTS_V05.md and docs/EVIDENCE_PROTOCOL.md. The authentic ETQ end-to-end gate must be executed on actual upstream files: synthetic fixture tests do not count as passing it. No GitHub Actions are added.
