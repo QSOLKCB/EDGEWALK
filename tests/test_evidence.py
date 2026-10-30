@@ -153,7 +153,7 @@ class EvidenceTests(TestCase):
             manifest["files"]["validation.json"] = {"sha256": _sha(raw), "byteLength": len(raw)}
             (target/"manifest.json").write_bytes(_canonical(manifest))
             (target/"SHA256SUMS.txt").write_text("".join(
-                _sha((target/name).read_bytes())+"  "+name+"\\n"
+                _sha((target/name).read_bytes())+"  "+name+"\n"
                 for name in sorted((*manifest["files"], "manifest.json"))))
             with self.assertRaisesRegex(ValueError, "forged ETQ source"):
                 verify_evidence_package(target)
