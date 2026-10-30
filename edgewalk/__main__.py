@@ -31,8 +31,9 @@ def main():
     args = parser.parse_args()
     if sum(bool(x) for x in (args.evidence_out, args.verify_evidence, args.validate_etq)) > 1:
         parser.error("choose only one v0.5 action")
-    if args.trusted_etq_manifest_sha256 and not (args.validate_etq or args.etq_bundle):
-        parser.error("--trusted-etq-manifest-sha256 requires an ETQ evidence/validation action")
+    if args.trusted_etq_manifest_sha256 and not (
+            args.validate_etq or ((args.evidence_out or args.verify_evidence) and args.etq_bundle)):
+        parser.error("--trusted-etq-manifest-sha256 requires an ETQ v0.5 evidence/validation action")
     if args.evidence_out or args.verify_evidence or args.validate_etq:
         if (args.full or args.numerical or args.stability or args.no_nonbacktracking
                 or args.controls or args.swaps != 16 or args.epsilon != 0.01):
