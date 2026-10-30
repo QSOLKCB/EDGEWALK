@@ -35,3 +35,12 @@
 12. Run Ada builds and GNATprove inside a disposable, unprivileged, offline
     container/VM with no host credentials exposed. Avoid processing
     contributor-controlled GPR/Ada sources on a privileged reviewer host.
+
+
+13. Permit a read-only Alire toolchain mount from a single direct child of
+    the reviewer's `~/opt` folder, at its original path inside the isolated
+    environment. Replace sandbox `/home` with tmpfs before mounting only that
+    prefix; never mount the reviewer's actual HOME, credentials or network.
+14. Capture executable SHA-256 and exact versions as observational evidence,
+    not a certified vendor release. Version failures or unproved contracts
+    remain reported; never emit automatic proof PASS.
