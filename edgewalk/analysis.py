@@ -10,15 +10,20 @@ from .etq import ETQBundle
 DOMAIN = b"EDGEWALK/V2/COMPARISON\0"
 
 
-def validated_walk(graph: Mapping[str, tuple[str, ...]], start: str, count: int = 303) -> tuple[dict, ...]:
+def validated_walk(graph: Mapping[str, tuple[str, ...]], start: str, count: int = 303,
+                   events: tuple[dict, ...] | None = None) -> tuple[dict, ...]:
     """Walk actual graph edges, with ETQ event addresses as an auxiliary clock."""
     tanner_metrics(dict(graph))
     if start not in graph:
         raise ValueError("start node absent")
+    if events is not None and len(events) != count:
+        raise ValueError("source schedule length mismatch")
     current = start
     steps = []
     for n in range(count):
-        event = etq_address(n)
+        event = etq_address(n) if events is None else events[n]
+        if type(event.get("sequenceIndex")) is not int or event["sequenceIndex"] != n:
+            raise ValueError("source schedule sequence mismatch")
         options = tuple(sorted(graph[current]))
         if not options:
             raise ValueError("isolated vertex")
@@ -138,17 +143,18 @@ def compare(etq: ETQBundle, numerical: bool = False, swaps: int = 16) -> dict[st
         "etq": degree_preserving_control(etq_graph, swaps),
     }
     result = {}
+    schedule = etq.events if etq.events else None
     for name in ("golay", "etq"):
         original, control = graphs[name], controls[name]
         start = "q:00" if name == "golay" else "0"
         entry = {
             "graph": tanner_metrics(original),
             "spectralMoments": exact_spectral_moments(original),
-            "walk": walk_stats(validated_walk(original, start)),
+            "walk": walk_stats(validated_walk(original, start, events=schedule)),
             "degreePreservingControl": {
                 "graph": tanner_metrics(control),
                 "spectralMoments": exact_spectral_moments(control),
-                "walk": walk_stats(validated_walk(control, start)),
+                "walk": walk_stats(validated_walk(control, start, events=schedule)),
                 "requestedSwaps": swaps,
                 "limitation": "graph-topology null only; NOT a valid CSS code or ETQ graph identity",
             },
