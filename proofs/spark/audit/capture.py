@@ -274,6 +274,11 @@ def verify_archive(output: Path, spark: Path = SPARK, repo: Path = ROOT) -> dict
             or manifest.get("reportedAtUtc") != REPORT_TIME):
         fail("invalid archive manifest")
     payload = payload_files(output / "original", output / "sources", repo)
+    expected_paths = set(payload) | {"manifest.json", "SHA256SUMS.txt"}
+    actual_paths = {str(p.relative_to(output)) for p in output.rglob("*")
+                    if p.is_file() or p.is_symlink()}
+    if actual_paths != expected_paths:
+        fail("archive contains missing or unexpected files")
     if manifest.get("files") != {
             p: {"sha256": digest(b), "byteLength": len(b)}
             for p, b in sorted(payload.items())}:
