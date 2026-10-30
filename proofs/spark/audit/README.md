@@ -61,3 +61,29 @@ the manifest alone is not a publisher authenticity signature.
 
 The synthetic fixture in `tests/test_spark_audit_archive.py` only tests the
 capture/replay code; it is **not** an authentic GNATprove run.
+
+## Add the actual local evidence to this audit PR
+
+If you are on a detached HEAD after earlier verification, first switch to
+the existing audit branch (ignored local proofs/spark/evidence/ is retained):
+
+```bash
+cd ~/EDGEWALK
+git fetch origin audit/v0.7.1-spark-proof-evidence
+git switch -c audit/v0.7.1-spark-proof-evidence --track origin/audit/v0.7.1-spark-proof-evidence
+
+python3 proofs/spark/audit/capture.py \
+  --capture proofs/spark/audits/2026-10-30-6a8c0c7
+python3 proofs/spark/audit/capture.py \
+  --verify proofs/spark/audits/2026-10-30-6a8c0c7
+
+# Inspect the captured originals for confidential paths, secrets or
+# other content before publishing. Do not rewrite them: abort upload if unsafe.
+git status --short
+git add proofs/spark/audits/2026-10-30-6a8c0c7
+git commit -m "evidence: archive original GNATprove v0.7.1 48-check run"
+git push
+```
+
+The transcript and version files are currently absent from this PR by design.
+Only after the byte-identical capture is pushed should the PR leave Draft.
