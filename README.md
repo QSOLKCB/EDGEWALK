@@ -264,3 +264,17 @@ result in NOT RUN, not a fabricated proof result. Set up these dependencies
 through a separately trusted, isolated provisioning procedure. The standard
 Python 3.10 regression suite needs no `tomli` package: the auditor checks
 an exact allowlisted Lake configuration. See proofs/lean/README.md.
+
+## v0.7.1 — SPARK Ada Reference Kernel (review gate pending)
+
+A separate `proofs/spark/` package now implements a narrow Ada/SPARK
+reference for ETQ CRT addressing, phase/tensor fields, 23-bit GF(2) parity
+and reciprocal-edge-validated transitions. Its source and project file
+are distinct from the runtime self-test. GNATprove must discharge bounded
+contracts and runtime checks; the assessor preserves unresolved/justified
+obligations rather than inventing PASS status. The pinned FSF toolchain
+versions are declared, but archive checksums and actual GNATprove execution
+remain to be verified. See `docs/INVARIANTS_V071.md` and
+`proofs/spark/README.md`. Python equivalence is intentionally future
+v0.7.2 work, not a result of this milestone.
+

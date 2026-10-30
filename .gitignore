@@ -5,3 +5,11 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+
+# v0.7.1 locally generated Ada/SPARK artifacts and proof transcripts
+proofs/spark/obj/
+proofs/spark/obj-test/
+proofs/spark/bin/
+proofs/spark/evidence/
+proofs/spark/**/*.ali
+proofs/spark/**/*.o
