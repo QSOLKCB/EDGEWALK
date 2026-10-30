@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # All contributor-controlled GPR/Ada compilation and GNATprove execution occur
-# ONLY in a temporary offline bubblewrap sandbox with no host HOME or tokens.
+# ONLY in a temporary, offline bubblewrap sandbox. Alire's original installation
+# path is mounted READ ONLY; the reviewer's remaining HOME is not accessible.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -8,10 +9,31 @@ if [[ ! -x /usr/bin/bwrap ]]; then
   echo "SPARK_STATUS=NOT_RUN: trusted /usr/bin/bwrap required" >&2
   exit 2
 fi
-for exe in gprbuild gnatprove gnatmake python3; do
-  path="$(command -v "$exe" || true)"
-  if [[ -z "$path" || "$(realpath "$path")" != /usr/* ]]; then
-    echo "SPARK_STATUS=NOT_RUN: $exe must be preinstalled under /usr for offline sandbox" >&2
+
+# Accept one direct child of ~/opt, including ~/opt/edgewalk-spark-toolchain.
+# Keeping the original absolute path accommodates Alire's helper/runtime paths.
+# Do not install anything or run compiler code during this host-side preflight.
+home_real="$(realpath -e -- "$HOME")"
+if [[ "$home_real" != /home/* || "$home_real" == /home/*/* ]]; then
+  echo "SPARK_STATUS=NOT_RUN: expected /home/USER layout" >&2
+  exit 2
+fi
+opt_real="$(realpath -e -- "$home_real/opt" 2>/dev/null || true)"
+requested="${EDGEWALK_SPARK_TOOLCHAIN:-$home_real/opt/edgewalk-spark-toolchain}"
+toolchain_dir="$(realpath -e -- "$requested" 2>/dev/null || true)"
+if [[ -z "$opt_real" || -z "$toolchain_dir" ||
+      "$(dirname -- "$toolchain_dir")" != "$opt_real" ||
+      ! -d "$toolchain_dir" ]]; then
+  echo "SPARK_STATUS=NOT_RUN: toolchain must be under ~/opt/<name>" >&2
+  exit 2
+fi
+
+# Refuse symlinks that resolve outside the approved read-only tree.
+for exe in gnatmake gprbuild gnatprove; do
+  candidate="$toolchain_dir/bin/$exe"
+  resolved="$(realpath -e -- "$candidate" 2>/dev/null || true)"
+  if [[ ! -x "$candidate" || "$resolved" != "$toolchain_dir/"* ]]; then
+    echo "SPARK_STATUS=NOT_RUN: invalid isolated tool path: $exe" >&2
     exit 2
   fi
 done
@@ -27,19 +49,32 @@ for dir in /lib /lib64 /bin; do
   fi
 done
 
-# Never mount real /home, /root, /run, /mnt, SSH agent or Docker socket.
+# /home is a fresh tmpfs. Only this one prefix is bound back, read-only.
+# No original reviewer HOME, SSH agent, cloud tokens or network are exposed.
 set +e
 /usr/bin/bwrap --unshare-all --die-with-parent --new-session --clearenv \
   --ro-bind /usr /usr "${mounts[@]}" \
+  --tmpfs /home --dir "$home_real" --dir "$opt_real" \
+  --ro-bind "$toolchain_dir" "$toolchain_dir" \
   --dir /work --bind "$scratch/work" /work \
-  --tmpfs /tmp --tmpfs /home --tmpfs /root --proc /proc --dev /dev \
-  --setenv HOME /home --setenv PATH /usr/local/bin:/usr/bin:/bin \
+  --tmpfs /tmp --tmpfs /root --tmpfs /sandbox-home --proc /proc --dev /dev \
+  --setenv HOME /sandbox-home \
+  --setenv EDGEWALK_SPARK_TOOLCHAIN "$toolchain_dir" \
+  --setenv PATH "$toolchain_dir/bin:$toolchain_dir/libexec/spark/bin:/usr/bin:/bin" \
   --setenv GIT_CONFIG_NOSYSTEM 1 --setenv GIT_CONFIG_GLOBAL /dev/null \
   --chdir /work /usr/bin/bash -euc '
-    for executable in gprbuild gnatprove gnatmake python3; do
-      command -v "$executable" >/dev/null || exit 2
+    for exe in gnatmake gprbuild gnatprove; do
+      actual="$(command -v "$exe" || true)"
+      if [[ "$actual" != "$EDGEWALK_SPARK_TOOLCHAIN/bin/$exe" ]]; then
+        echo "SPARK_STATUS=UNVERIFIED: unexpected $exe at $actual" >&2
+        exit 2
+      fi
     done
     mkdir -p evidence
+    sha256sum "$EDGEWALK_SPARK_TOOLCHAIN/bin/gnatmake" \
+              "$EDGEWALK_SPARK_TOOLCHAIN/bin/gprbuild" \
+              "$EDGEWALK_SPARK_TOOLCHAIN/bin/gnatprove" \
+              > evidence/toolchain-executable-sha256.txt
     gnatmake --version > evidence/gnat-version.txt
     gprbuild --version > evidence/gprbuild-version.txt
     gnatprove --version > evidence/gnatprove-version.txt
@@ -80,9 +115,10 @@ PY
 sandbox_exit=$?
 set -e
 
-# Persist only well-defined inert text evidence, never sandbox-created code.
+# Preserve only fixed-name inert log files, including partial failure evidence.
 mkdir -p evidence
 for name in gnat-version.txt gprbuild-version.txt gnatprove-version.txt \
+            toolchain-executable-sha256.txt \
             ada-selftest.txt gnatprove-run.txt gnatprove-exit.txt \
             gnatprove.out gnatprove-assessment.json; do
   candidate="$scratch/work/evidence/$name"
