@@ -150,7 +150,7 @@ def compare(cases: bytes, expected: bytes, actual: bytes,
         exp = left[index].decode("ascii", "backslashreplace") if index < len(left) else "<EOF>"
         got = right[index].decode("ascii", "backslashreplace") if index < len(right) else "<EOF>"
         raise ValueError(f"Ada/Python mismatch at record {index + 1}: expected {exp!r}, got {got!r}")
-    return {
+    receipt = {
         "schema": "edgewalk.spark-python-conformance/v1",
         "status": "CONFORMANT_TESTED",
         "cases": counts,
@@ -164,6 +164,21 @@ def compare(cases: bytes, expected: bytes, actual: bytes,
         "pythonFormalEquivalence": False,
         "scope": "bounded address/inverse; 32x32 parity samples; 8100 edge flag controls; 303 Python walk edges",
     }
+    receipt["receiptDomain"] = "EDGEWALK/V072/CONFORMANCE"
+    receipt["receiptSha256"] = digest(
+        b"EDGEWALK/V072/CONFORMANCE\x00" + canonical(receipt))
+    return receipt
+
+
+def verify_receipt(cases: bytes, expected: bytes, actual: bytes,
+                   recorded: bytes) -> dict:
+    # Reconstruct everything instead of trusting a self-consistent but
+    # forged manifest or a caller-provided "success" flag.
+    proven = compare(cases, expected, actual,
+                     source_hashes=validate_sources())
+    if recorded != canonical(proven):
+        raise ValueError("conformance receipt bytes or provenance changed")
+    return proven
 
 
 def main() -> int:
@@ -177,6 +192,11 @@ def main() -> int:
     cmp.add_argument("--expected", required=True, type=Path)
     cmp.add_argument("--actual", required=True, type=Path)
     cmp.add_argument("--receipt", required=True, type=Path)
+    ver = mode.add_parser("verify")
+    ver.add_argument("--cases", required=True, type=Path)
+    ver.add_argument("--expected", required=True, type=Path)
+    ver.add_argument("--actual", required=True, type=Path)
+    ver.add_argument("--receipt", required=True, type=Path)
     args = parser.parse_args()
     try:
         src = validate_sources()
@@ -187,7 +207,7 @@ def main() -> int:
                     target.write(contents)
             print(json.dumps({"status": "PYTHON_FIXTURES_ONLY", "cases": counts},
                              sort_keys=True))
-        else:
+        elif args.mode == "compare":
             actual = validated_read(args.actual)
             receipt = compare(validated_read(args.cases),
                               validated_read(args.expected), actual,
@@ -196,6 +216,13 @@ def main() -> int:
                 target.write(canonical(receipt))
             print(json.dumps({"status": receipt["status"],
                               "cases": receipt["cases"]}, sort_keys=True))
+        else:
+            report = verify_receipt(validated_read(args.cases),
+                                    validated_read(args.expected),
+                                    validated_read(args.actual),
+                                    validated_read(args.receipt))
+            print(json.dumps({"status": "REPLAY_VERIFIED",
+                              "cases": report["cases"]}, sort_keys=True))
         return 0
     except (ValueError, OSError, UnicodeError) as exc:
         print("SPARK_CONFORMANCE=UNVERIFIED: " + str(exc), file=sys.stderr)
