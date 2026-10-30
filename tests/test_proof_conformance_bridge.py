@@ -128,6 +128,43 @@ class ProofConformanceBridgeTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 cases.open("xb")
 
+    def test_documented_replay_command_executes_in_uninstalled_checkout(self):
+        # Exercise the *actual Markdown Bash block* with a synthetic mocked
+        # Ada output. This validates documentation, not real Ada conformance.
+        v = module()
+        doc = (ROOT / "docs" / "INVARIANTS_V072.md").read_text()
+        block = doc.split(
+            "The saved receipt can be independently replayed without rerunning Ada:",
+            1,
+        )[1].split("```bash", 1)[1].split("```", 1)[0].strip()
+        commands = [line for line in block.splitlines() if line and not line.startswith("#")]
+        self.assertEqual(len(commands), 5)
+        self.assertTrue(commands[0].startswith(
+            "PYTHONPATH=../.. python3 conformance/bridge.py verify "))
+        self.assertTrue(all(line.endswith("\\") and not line.endswith("\\\\")
+                            for line in commands[:-1]))
+        self.assertFalse(commands[-1].endswith("\\"))
+        with TemporaryDirectory() as tmp:
+            folder = Path(tmp) / "conformance-output"
+            folder.mkdir()
+            cases, expected, _ = v.cases_and_expected()
+            (folder / "cases.txt").write_bytes(cases)
+            (folder / "python-expected.txt").write_bytes(expected)
+            (folder / "ada-observed.txt").write_bytes(expected)
+            receipt = v.compare(cases, expected, expected,
+                                source_hashes=v.validate_sources())
+            (folder / "receipt.json").write_bytes(v.canonical(receipt))
+            actual_block = block.replace("conformance-output/", str(folder) + "/")
+            run = subprocess.run(["bash", "-e", "-c", actual_block], cwd=SPARK,
+                                 capture_output=True, text=True)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertEqual(json.loads(run.stdout)["status"], "REPLAY_VERIFIED")
+            (folder / "ada-observed.txt").write_bytes(expected + b"E 0 1 1 1 1 1\n")
+            rejected = subprocess.run(["bash", "-e", "-c", actual_block], cwd=SPARK,
+                                      capture_output=True, text=True)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("SPARK_CONFORMANCE=UNVERIFIED", rejected.stderr)
+
     def test_driver_separate_from_proved_spark_project(self):
         proof = (SPARK / "edgewalk_spark.gpr").read_text()
         project = (SPARK / "conformance.gpr").read_text()
