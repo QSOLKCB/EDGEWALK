@@ -265,20 +265,26 @@ through a separately trusted, isolated provisioning procedure. The standard
 Python 3.10 regression suite needs no `tomli` package: the auditor checks
 an exact allowlisted Lake configuration. See proofs/lean/README.md.
 
-## v0.7.1 — SPARK Ada Reference Kernel (review gate pending)
+## v0.7.1 — SPARK Ada Reference Kernel (48 checks discharged)
 
-A separate `proofs/spark/` package now implements a narrow Ada/SPARK
-reference for ETQ CRT addressing, phase/tensor fields, 23-bit GF(2) parity
-and reciprocal-edge-validated transitions. Its source and project file
-are distinct from the runtime self-test. GNATprove must discharge bounded
-contracts and runtime checks; the assessor preserves unresolved/justified
-obligations rather than inventing PASS status. The pinned FSF toolchain
-versions are declared, but archive checksums and actual GNATprove execution
-remain to be verified. See `docs/INVARIANTS_V071.md` and
-`proofs/spark/README.md`. Python equivalence is intentionally future
-v0.7.2 work, not a result of this milestone.
+The narrow Ada/SPARK reference in `proofs/spark/` covers ETQ CRT addressing,
+phase/tensor fields, 23-bit GF(2) parity and reciprocal-edge transitions.
+An authentic offline GNATprove FSF 16.1.0 run at historical source commit
+`6a8c0c7` reported 48 checks (16 flow and 32 prover), zero unproved and
+zero justified. All original logs are preserved with source snapshots,
+checksums and an audit manifest.
 
+These results establish the **declared Ada contracts only**. Python
+equivalence, full nonzero-word parity correctness and the separate Lean
+kernel gate remain outside the scope of this audit. Recorded executable
+fingerprints do not authenticate the original vendor release archives.
 
 ## SPARK v0.7.1 verification evidence audit
 
-The 2026-10-30 GNATprove 48-check report and source/toolchain fingerprints are reviewed in [docs/SPARK_FORMAL_VERIFICATION_EVIDENCE_v071.md](docs/SPARK_FORMAL_VERIFICATION_EVIDENCE_v071.md). Original, unmodified local prover files must be added by the operator using [proofs/spark/audit/capture.py](proofs/spark/audit/capture.py); the review report alone is not a byte-identical archive. This SPARK result does not establish the separate Lean kernel verification or Python/Ada semantic equivalence.
+The original unmodified 2026-10-30 GNATprove logs, source/toolchain
+fingerprints and checksum-bound manifest are preserved in [the 21-file
+archived evidence set](proofs/spark/audits/2026-10-30-6a8c0c7).
+See [the evidence review](docs/SPARK_FORMAL_VERIFICATION_EVIDENCE_v071.md)
+and [archive replay tool](proofs/spark/audit/capture.py). The SPARK result
+does not establish independent vendor authentication, the Lean kernel
+verification or Python/Ada semantic equivalence.
