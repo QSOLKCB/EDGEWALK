@@ -82,11 +82,28 @@ On a real successful run, `proofs/spark/conformance-output/` contains:
   of those three files, declared counts and explicit limits
 - Actual compiler/prover banner captures and executable SHA-256 observations.
 
-The runner prints `SPARK_CONFORMANCE=TESTED` **only after** it compiled and
+The receipt status is **`OUTPUT_MATCH_REVIEW_REQUIRED`**: an editable
+receipt alone cannot prove that Ada executed. The runner prints
+`SPARK_CONFORMANCE=TESTED` **only after** it compiled and
 ran the Ada executable and the Python comparison matched all rows. It
 never prints a proof PASS marker. An existing output folder is not overwritten.
 Failures emit `UNVERIFIED`, return nonzero and retain any safe intermediate
 text outputs for inspection; they cannot produce a success receipt.
+
+The saved receipt can be independently replayed without rerunning Ada:
+
+```bash
+python3 conformance/bridge.py verify \\
+  --cases conformance-output/cases.txt \\
+  --expected conformance-output/python-expected.txt \\
+  --actual conformance-output/ada-observed.txt \\
+  --receipt conformance-output/receipt.json
+```
+
+Replay regenerates Python values and checks the entire receipt including its
+domain-separated digest, the archived GNATprove report fingerprint, the
+unchanged audited Ada sources, and both Python-core/IO-driver source hashes.
+It returns `REPLAY_VERIFIED`, not an Ada or Lean proof certificate.
 
 To rerun, use a fresh output directory:
 `bash conformance/run.sh conformance-output-second-run`.
