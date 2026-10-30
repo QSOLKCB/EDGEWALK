@@ -288,3 +288,31 @@ See [the evidence review](docs/SPARK_FORMAL_VERIFICATION_EVIDENCE_v071.md)
 and [archive replay tool](proofs/spark/audit/capture.py). The SPARK result
 does not establish independent vendor authentication, the Lean kernel
 verification or Python/Ada semantic equivalence.
+
+## v0.7.2 — Executable Python/SPARK Proof-Conformance Bridge
+
+The [v0.7.2 protocol](docs/INVARIANTS_V072.md) adds a **real Ada**
+stdin/stdout test driver using the unchanged, source-hash-pinned v0.7.1
+SPARK package, and a Python oracle over 10,033 deterministic cases:
+303 forward CRT, 303 inverse CRT, 1,024 sampled 23-bit parity pairs,
+8,100 45-vertex edge-acceptance controls and 303 real Tanner-walk edges.
+
+~~~bash
+python3 -m unittest discover -s tests -v
+cd proofs/spark
+bash conformance/run.sh
+~~~
+
+The latter step builds and executes the Ada harness **only inside an offline
+Bubblewrap sandbox**, checks the pinned toolchain, regenerates Python
+expectations and rejects any mismatched records. It writes inert comparison
+artifacts and a deterministic, SHA-256-bound receipt under ignored
+`proofs/spark/conformance-output/`. No GitHub Actions. It requires the
+separately provisioned GNAT/GPRbuild/GNATprove toolchain and original archived
+v0.7.1 proof report. Until that command has been run and reviewed on a
+real Ada-equipped host, this v0.7.2 feature is **implementation ready,
+execution unverified**.
+
+The conformance driver itself is non-SPARK and not formally proved. Testing
+finite cases does not prove Python/Ada semantic equivalence, expand Ada's
+declared contracts, or establish Lean kernel verification.
