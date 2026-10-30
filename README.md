@@ -278,3 +278,7 @@ remain to be verified. See `docs/INVARIANTS_V071.md` and
 `proofs/spark/README.md`. Python equivalence is intentionally future
 v0.7.2 work, not a result of this milestone.
 
+
+## SPARK v0.7.1 verification evidence audit
+
+The 2026-10-30 GNATprove 48-check report and source/toolchain fingerprints are reviewed in [docs/SPARK_FORMAL_VERIFICATION_EVIDENCE_v071.md](docs/SPARK_FORMAL_VERIFICATION_EVIDENCE_v071.md). Original, unmodified local prover files must be added by the operator using [proofs/spark/audit/capture.py](proofs/spark/audit/capture.py); the review report alone is not a byte-identical archive. This SPARK result does not establish the separate Lean kernel verification or Python/Ada semantic equivalence.
