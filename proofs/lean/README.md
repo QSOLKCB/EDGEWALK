@@ -51,3 +51,19 @@ implementation, cryptographic source provenance, or physical spacetime.
 - Full Python suite unchanged and passing.
 - No GitHub Actions; no modifications to SONIFICATION or QEC.
 - Do not mark proofs as kernel-checked based only on source inspection.
+
+
+## Mandatory post-audit proof gates
+
+The original PR head (5cd2231) could falsely pass if Edgewalk.lean dropped
+all substantive imports. Corrected verification requires an exact approved
+root import graph, parsed effective Mathlib URL and revision (not comment
+text), **explicit build of every one of the four proof modules**, and the
+real paranoid kernel checker.
+
+A known false-pass transcript is not a proof. Any previously reported
+KERNEL_CHECKED=PASS from a root-import bypass must be discarded.
+
+The exact corrected branch still requires re-execution on Lean 4.35.0,
+a reviewed/committed generated Lake lockfile, and an authentic checker
+transcript. No source-only audit or Python check is kernel acceptance.

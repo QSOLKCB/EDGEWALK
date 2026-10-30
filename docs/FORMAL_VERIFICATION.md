@@ -63,3 +63,28 @@ For the concrete binary Golay \`[[23,1,7]]\` matrix, independently
 construct the 11x23 parity matrix in Lean, prove GF(2) rank, H H^T = 0,
 logical dimension and minimum distance. Then implement the SPARK
 reference and a separate conformance/semantic refinement argument.
+
+
+## PR #7 post-audit corrections (2026-10-30)
+
+Three issues were confirmed in the first candidate (5cd2231):
+1. The CRT inverse proof contained an unnecessary intermediate modulo 303
+   in two Lean \`change\` goals; both were removed without changing the theorem.
+2. Lake's root import set cannot define proof acceptance by itself. The
+   source audit now requires an **exact** Edgewalk.lean import list and
+   exactly the approved module files/import dependencies. The verification
+   script explicitly builds Edgewalk.CRT, Edgewalk.Phase, Edgewalk.Monomial,
+   Edgewalk.GF2, and Edgewalk before paranoid kernel checking.
+3. Mathlib is now validated by parsing the **effective TOML configuration**,
+   enforcing the exact Mathlib URL and commit SHA as well as the expected
+   Lake root target. A pin merely present in a comment fails.
+
+Regression tests include a trivial-root/broken-CRT negative control and an
+altered Mathlib revision/URL with the original pin present only in comments.
+
+**The initial verifier's KERNEL_CHECKED=PASS from the negative control is
+INVALID EVIDENCE.** Only a fresh run on the corrected branch can establish
+kernel-verified status. No replacement lockfile or kernel log has been
+fabricated here. The external reviewer reported 54 passing Python tests
+and one pre-existing physical-model CLI error also reproducible on the base;
+that failure must remain visible but is a separate issue from these proofs.
