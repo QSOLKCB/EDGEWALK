@@ -56,3 +56,28 @@ Unknown models must fail closed. NASA Kepler is a **retrospective example of
 an exactly enumerated conditional label null**, NOT a physically randomized
 dataset or a dark-sector test. Never interpret 2+3 engineering channels as
 (3,2) spacetime signature. Do not alter v0.1–v0.5 receipts or workflows.
+
+
+## v0.7 Lean formal proof gate
+
+Before touching proofs, read docs/INVARIANTS_V07.md and
+docs/FORMAL_VERIFICATION.md. The exact Lean project is in proofs/lean.
+Toolchain and Mathlib source revision must remain pinned. No sorry, admit,
+new axiom, unsafe, native_decide or unreviewed metaprogramming proof bypasses.
+Run the source audit, Lake build, and lake check --paranoid. If Lean,
+Mathlib, bubblewrap or the kernel checker cannot run, report NOT RUN rather
+than PASS; never claim a proof was kernel-checked by human inspection.
+Theorem statements are scoped to finite ETQ algebra and GF(2) identities:
+concrete Golay matrix rank/distance and Python/Node executable conformance
+are not proved in v0.7. No network access in ordinary runtime and no GitHub
+Actions or upstream changes.
+
+## v0.7 P1 elaboration security / P2 Python 3.10 portability
+
+Never execute Lake update, cache fetching, Lean compilation or source audit
+on the reviewer's credential-bearing host when checking contributor proofs.
+All proof-source processing runs inside an offline bubblewrap sandbox with
+no host HOME, tokens or writable checkout. Source-only lint against #eval is
+not a security boundary. The Python 3.10 default test suite must not require
+tomli or any new third-party dependency. Do not mark the PR merge-ready
+without a genuine isolated kernel transcript and reviewed lockfile.

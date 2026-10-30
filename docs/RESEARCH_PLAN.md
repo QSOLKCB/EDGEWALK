@@ -25,3 +25,16 @@ G-003 visually similar eigenvalues require precommitted null controls.
 G-004 EDGEWALK hashes are never ETQ/V3 receipts.
 G-005 a degree-preserving graph rewire may cease to be a CSS or ETQ graph.
 G-006 numeric eigenvector IPR under degeneracy is not uniquely reproducible from eigenvector choice.
+
+
+## Formal-verification arc
+
+- **v0.7.0 (draft, kernel gate outstanding):** pinned Lean/Mathlib Lake
+  project with candidate CRT, 303-step phase/monomial, GF(2) proofs;
+  strict source lint and external paranoid kernel check requirement.
+  No kernel-checked result is claimed until a recorded real checker run.
+- **v0.7.1 (future):** independently verified SPARK Ada kernel with
+  GNATprove contracts, safety and overflow obligations.
+- **v0.7.2 (future):** differential reference/conformance cases
+  linking proved Lean algebra, verified SPARK procedures and existing Python.
+  No cross-language equivalence is automatic.
