@@ -28,6 +28,15 @@ def cartesian_303():
     return graph
 
 
+try:
+    import numpy
+    import scipy
+    NUMERICAL_AVAILABLE = True
+except ImportError:
+    NUMERICAL_AVAILABLE = False
+
+
+@unittest.skipUnless(NUMERICAL_AVAILABLE, "v0.3 NumPy/SciPy extras not installed")
 class SpectralStabilityTests(unittest.TestCase):
     def test_nonbacktracking_oriented_edges_and_no_immediate_reversal(self):
         graph = cycle(("a","b","c","d"))
