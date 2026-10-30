@@ -131,6 +131,19 @@ class SparkAuditArchiveTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "archive"):
                 a.verify_archive(root / "audit")
 
+    def test_extra_archive_file_rejected(self):
+        a = archive_module()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            evidence = root / "evidence"
+            evidence.mkdir()
+            synthetic_evidence(evidence)
+            archive = root / "audit"
+            a.write_archive(evidence, archive)
+            (archive / "unexpected.json").write_text("{}")
+            with self.assertRaisesRegex(ValueError, "unexpected files"):
+                a.verify_archive(archive)
+
     def test_claims_distinguish_ada_lean_and_vendor_provenance(self):
         text = archive_module().review_text().decode("utf-8")
         self.assertIn("NOT a statement", text)
