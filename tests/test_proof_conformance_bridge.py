@@ -81,6 +81,26 @@ class ProofConformanceBridgeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Ada/Python mismatch"):
             v.compare(cases, expected, expected + b"E 0 1 1 1 1 1\n")
 
+    def test_receipt_replay_rejects_rehashed_forgery(self):
+        v = module()
+        cases, expected, _ = v.cases_and_expected()
+        authentic = v.compare(cases, expected, expected)  # deliberately mocked
+        self.assertEqual(authentic["receiptDomain"], "EDGEWALK/V072/CONFORMANCE")
+        self.assertEqual(v.verify_receipt(cases, expected, expected,
+                                          v.canonical(authentic)), authentic)
+        tampered = dict(authentic)
+        tampered["pythonFormalEquivalence"] = True
+        # Even when a malicious writer recomputes the receipt digest,
+        # independent regeneration rejects the altered claim.
+        tampered.pop("receiptSha256")
+        tampered["receiptSha256"] = v.digest(
+            b"EDGEWALK/V072/CONFORMANCE\x00" + v.canonical(tampered))
+        with self.assertRaisesRegex(ValueError, "receipt bytes or provenance"):
+            v.verify_receipt(cases, expected, expected, v.canonical(tampered))
+        with self.assertRaisesRegex(ValueError, "receipt bytes or provenance"):
+            v.verify_receipt(cases, expected, expected,
+                             v.canonical(authentic) + b"\n")
+
     def test_python_case_input_and_output_are_canonical(self):
         v = module()
         with TemporaryDirectory() as tmp:
@@ -131,6 +151,7 @@ class ProofConformanceBridgeTests(unittest.TestCase):
         self.assertIn("python3 conformance/check_toolchain.py", script)
         self.assertIn("./bin/conformance_driver <", script)
         self.assertIn("--receipt results/receipt.json", script)
+        self.assertIn("python3 conformance/bridge.py verify", script)
         self.assertGreater(script.index("gprbuild -P conformance.gpr"),
                            script.index("/usr/bin/bwrap --unshare-all"))
         self.assertNotIn("SPARK_STATUS=PASS", script)
