@@ -142,6 +142,28 @@ class SparkContractTests(unittest.TestCase):
             self.assertNotIn("SPARK_STATUS=PASS", trial.stdout + trial.stderr)
             self.assertNotIn("SPARK_STATUS=REVIEW_REQUIRED", trial.stdout + trial.stderr)
 
+    def test_parity_loop_invariant_is_nontrivial_and_zero_input_safe(self):
+        body = (SPARK / "src" / "edgewalk_reference.adb").read_text()
+        self.assertNotIn("Result_Bit in Bit", body)
+        self.assertNotIn("Remaining <= Word_23'Last", body)
+        self.assertIn("pragma Loop_Invariant", body)
+        self.assertIn("Remaining = 0 and then Result_Bit = 0", body)
+        # Independent finite reference exercise: zero operands retain the
+        # declared postcondition at every one of the 23 loop iterations.
+        mask = (1 << 23) - 1
+        for a in (0, 1, 3, 5, 1 << 22, mask):
+            for b in (0, 1, 3, 5, 1 << 22, mask):
+                remaining, result_bit = a & b, 0
+                for _ in range(23):
+                    if remaining % 2:
+                        result_bit = 1 - result_bit
+                    remaining //= 2
+                    self.assertTrue(
+                        (a != 0 and b != 0)
+                        or (remaining == 0 and result_bit == 0)
+                    )
+                self.assertEqual(result_bit, (a & b).bit_count() % 2)
+
     def test_assessor_missing_or_malformed_reports_fail_closed(self):
         assess = assessor()
         for payload in ("", "GNATprove succeeded", "Total   0"):
