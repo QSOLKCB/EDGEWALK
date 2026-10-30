@@ -5,6 +5,8 @@ IMPORTANT: passing this Python suite never means Lean has kernel-checked a proof
 from __future__ import annotations
 
 import importlib.util
+import builtins
+from unittest.mock import patch
 from pathlib import Path
 import shutil
 import subprocess
@@ -68,7 +70,8 @@ class LeanSourceContractTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertNotIn("KERNEL_CHECKED=PASS", result.stdout + result.stderr)
-            self.assertIn("SOURCE_AUDIT=FAIL", result.stdout)
+            # The secure verifier may fail earlier when bubblewrap/elan are
+            # unavailable; either way it MUST never report kernel acceptance.
 
     def test_effective_toml_revision_and_url_are_checked(self):
         audit = audit_module()
@@ -90,6 +93,69 @@ class LeanSourceContractTests(unittest.TestCase):
             ) + f'\n# original Mathlib URL: {audit.MATHLIB_URL}\n'
             (project / "lakefile.toml").write_text(changed_url)
             self.assertTrue(any("effective Mathlib" in e for e in audit.audit(project)))
+
+    def test_python310_without_tomllib_or_tomli_has_no_dependency(self):
+        # Simulate the exact missing-module path of a clean Python 3.10.
+        original_import = builtins.__import__
+
+        def without_toml(name, *args, **kwargs):
+            if name in ("tomllib", "tomli"):
+                raise ModuleNotFoundError("No module named " + name)
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=without_toml):
+            audit = audit_module()
+        self.assertIsNone(audit.tomllib)
+        self.assertEqual(audit.audit(), [])
+
+        # The pinned Lake config must still fail closed with no TOML parser
+        # available. An expected SHA in a comment must NOT permit drift.
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            shutil.copytree(LEAN / "Edgewalk", project / "Edgewalk")
+            shutil.copy(LEAN / "Edgewalk.lean", project)
+            shutil.copy(LEAN / "lean-toolchain", project)
+            original = (LEAN / "lakefile.toml").read_text()
+            changed = original.replace(
+                audit.PIN, "a" * 40
+            ) + "\n# approved previous SHA: " + audit.PIN + "\n"
+            (project / "lakefile.toml").write_text(changed)
+            self.assertTrue(any("effective Mathlib" in e for e in audit.audit(project)))
+
+    def test_sandbox_gate_covers_all_lean_elaboration(self):
+        verifier = (LEAN / "scripts" / "verify.sh").read_text()
+        self.assertIn("/usr/bin/bwrap", verifier)
+        self.assertIn("--unshare-all", verifier)
+        self.assertIn("--clearenv", verifier)
+        self.assertIn("--ro-bind", verifier)
+        self.assertIn("--bind \"$sandbox/work\" /work", verifier)
+        self.assertIn("--tmpfs /sandbox-home", verifier)
+        self.assertIn("lake check --paranoid", verifier)
+        self.assertIn("SANDBOXED_VERIFY_MODULE=", verifier)
+        self.assertNotIn("lake update", verifier)
+        self.assertNotIn("lake exe cache get", verifier)
+        # No source is interpreted by Lake before the bwrap boundary starts.
+        self.assertGreater(verifier.index('lake build "$module"'),
+                           verifier.index("/usr/bin/bwrap"))
+        self.assertGreater(verifier.index("python3 scripts/static_audit.py"),
+                           verifier.index("/usr/bin/bwrap"))
+        self.assertGreater(verifier.index("lake check --paranoid"),
+                           verifier.index("/usr/bin/bwrap"))
+
+    def test_eval_payload_is_blocked_as_defense_in_depth(self):
+        audit = audit_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            shutil.copytree(LEAN / "Edgewalk", project / "Edgewalk")
+            shutil.copy(LEAN / "Edgewalk.lean", project)
+            shutil.copy(LEAN / "lakefile.toml", project)
+            shutil.copy(LEAN / "lean-toolchain", project)
+            source = project / "Edgewalk" / "CRT.lean"
+            source.write_text(
+                source.read_text() +
+                '\n#eval IO.FS.writeFile "/tmp/edgewalk-should-not-exist" "pwned"\n'
+            )
+            self.assertTrue(any("forbidden" in e for e in audit.audit(project)))
 
     def test_crt_addresses_are_a_complete_bijection(self):
         pairs = [(n % 101, n % 3) for n in range(303)]
