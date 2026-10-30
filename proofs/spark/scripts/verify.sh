@@ -78,17 +78,11 @@ set +e
     gnatmake --version > evidence/gnat-version.txt
     gprbuild --version > evidence/gprbuild-version.txt
     gnatprove --version > evidence/gnatprove-version.txt
-    python3 - <<PY
-import json
-from pathlib import Path
-v = json.loads(Path("toolchain-lock.json").read_text())["crateVersions"]
-for name, filename in (("gnat_native", "gnat-version.txt"),
-                       ("gprbuild", "gprbuild-version.txt"),
-                       ("gnatprove", "gnatprove-version.txt")):
-    output = (Path("evidence") / filename).read_text()
-    if v[name] not in output:
-        raise SystemExit("UNVERIFIED: toolchain version mismatch: " + name)
-PY
+    python3 scripts/check_toolchain.py \
+      --lock toolchain-lock.json \
+      --gnat evidence/gnat-version.txt \
+      --gprbuild evidence/gprbuild-version.txt \
+      --gnatprove evidence/gnatprove-version.txt
     gprbuild -P reference_tests.gpr -p
     ./bin/reference_selftest > evidence/ada-selftest.txt
     set +e
