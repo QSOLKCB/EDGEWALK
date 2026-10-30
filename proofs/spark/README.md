@@ -144,3 +144,19 @@ bash scripts/verify.sh
 
 Do not treat an absence of `SPARK_STATUS=UNVERIFIED` as proof discharge.
 Review the actual GNATprove transcript and all remaining obligations.
+
+## GNAT 16.1.0 warning-as-error in parity loop (PR #10 follow-up)
+
+The first authentic isolated GPRbuild run reached the Ada compiler after all
+74 Python tests and pinned toolchain banners passed, but `-gnatwe` correctly
+treated a warning about `Result_Bit in Bit` (redundant subtype membership)
+as a build failure. The reference no longer uses that tautological check
+or the redundant `Remaining <= Word_23'Last` loop invariant. Instead the
+loop carries the zero-input postcondition explicitly: if either operand is
+zero, the remaining word and parity accumulator must stay zero.
+
+The compiler warning is a source issue, **not** proof that a GNATprove
+verification condition failed. The corrected Ada source and Python
+regression were committed, but must be recompiled inside the offline
+sandbox; successful compilation and even a runtime self-test are separate
+from independently reviewed SPARK proof obligations.
