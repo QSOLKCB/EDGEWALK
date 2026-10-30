@@ -55,9 +55,26 @@ def main():
             path = Path(args.verify_physical_report)
             if not path.is_file() or path.is_symlink() or path.stat().st_size > 65536:
                 parser.error("missing/symlinked/oversized physical report")
+            from .physical import _canonical
+            def unique_pairs(pairs):
+                obj = {}
+                for key, value in pairs:
+                    if key in obj:
+                        raise ValueError("duplicate physical report JSON key")
+                    obj[key] = value
+                return obj
             try:
-                report = json.loads(path.read_bytes().decode("utf-8"))
-            except (UnicodeError, json.JSONDecodeError) as exc:
+                raw = path.read_bytes()
+                report = json.loads(raw.decode("utf-8"), object_pairs_hook=unique_pairs,
+                                    parse_constant=lambda value: (_ for _ in ()).throw(
+                                        ValueError("non-finite JSON constant")))
+                # CLI-generated JSON ends in one newline; otherwise require
+                # canonical bytes and never treat a parser-normalized duplicate
+                # or reformatted report as the same submitted evidence.
+                core = raw[:-1] if raw.endswith(b"\n") else raw
+                if core != _canonical(report):
+                    raise ValueError("noncanonical physical report bytes")
+            except (UnicodeError, json.JSONDecodeError, ValueError, TypeError) as exc:
                 parser.error("invalid physical report JSON: " + str(exc))
             valid = verify_physical_report(report, observations_path=args.physical_data)
             print(json.dumps({"verified": valid, "model": "kepler-earth-anchored-v1"}))
