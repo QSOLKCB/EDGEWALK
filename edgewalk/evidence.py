@@ -10,7 +10,7 @@ from pathlib import Path
 from statistics import mean
 
 from .core import canonical_bytes
-from .controls import run_controlled_experiment, replay_experiment_receipt
+from .controls import run_controlled_experiment, replay_experiment_receipt, _summarize
 from .etq import _read, _domain_hash, load_etq_bundle
 
 RECEIVER_FILENAMES = frozenset({
@@ -40,13 +40,22 @@ def _bytes(root: Path, filename: str) -> bytes:
     return p.read_bytes()
 
 
-def verify_etq_release(directory):
-    """Extend ETQ v0.2 checks to the complete original v3 build and receipts.
+def verify_etq_release(directory, *, trusted_manifest_sha256=None):
+    """Verify a full release against an EXTERNAL, independently trusted SHA-256 pin.
 
-    Requires unmodified published event/edge identities, full manifest-listed
-    bytes, and the observation receipt core. Not a physical validation.
+    Never accept manifest/receipt digests from the submitted bundle as their
+    own trust anchor. The caller must obtain the pin independently, from a
+    previously authenticated release record. A caller-supplied digest is a
+    trust assertion, not proof that its origin was independently verified.
     """
+    _require(isinstance(trusted_manifest_sha256, str)
+             and len(trusted_manifest_sha256) == 64
+             and all(c in "0123456789abcdef" for c in trusted_manifest_sha256),
+             "trusted manifest SHA-256 required from independent upstream source")
     root = Path(directory)
+    manifest_bytes = _bytes(root, "manifest.json")
+    _require(_sha(manifest_bytes) == trusted_manifest_sha256,
+             "trusted manifest SHA-256 mismatch")
     bundle = load_etq_bundle(root)
     manifest, _ = _read(root, "manifest.json")
     receipt, receipt_raw = _read(root, "observation-receipt.json")
@@ -106,6 +115,7 @@ def verify_etq_release(directory):
     return {"gate": "passed", "schema": "edgewalk.etq-validation/v1",
             "modelId": "ETQ-303", "modelVersion": "3.0.0",
             "artifactSha256": artifact_hashes,
+            "trustedManifestSha256": trusted_manifest_sha256,
             "eventDocumentSha256": bundle.event_document_receipt,
             "liftedEdgesSha256": bundle.graph_edges_receipt,
             "manifestCoreSha256": manifest["manifestCoreSha256"],
@@ -164,17 +174,25 @@ def _json(value):
 
 def write_evidence_package(output, *, etq_directory=None, ensemble_size=4,
                            swaps=4, seed=303, bootstrap_draws=64,
-                           variants=("reference", "shear-a", "shear-b")):
+                           variants=("reference", "shear-a", "shear-b"),
+                           trusted_etq_manifest_sha256=None):
     """Create a fresh folder exclusively; no overwrites, deletions or source writes."""
     etq = None
     validation = {"schema": "edgewalk.etq-validation/v1", "gate": "not-run",
                   "reason": "No independently authenticated ETQ v3 export supplied"}
     if etq_directory is not None:
-        validation = verify_etq_release(etq_directory)
+        validation = verify_etq_release(
+            etq_directory, trusted_manifest_sha256=trusted_etq_manifest_sha256)
         etq = load_etq_bundle(etq_directory)
+    else:
+        _require(trusted_etq_manifest_sha256 is None,
+                 "trusted manifest pin supplied without ETQ source")
     report = run_controlled_experiment(etq, ensemble_size=ensemble_size,
                                        swaps=swaps, seed=seed, bootstrap_draws=bootstrap_draws,
                                        variants=variants)
+    # Persist the auxiliary bootstrap configuration outside the v0.4 exact
+    # evidence core, preserving its domain-separated SHA-256 identity.
+    report["analysisParameters"] = {"bootstrapDraws": bootstrap_draws}
     calibration = _calibration(report)
     payload = {"experiment.json": _json(report), "validation.json": _json(validation),
                "calibration.json": _json(calibration),
@@ -213,7 +231,7 @@ def _load(package, filename):
     return path.read_bytes()
 
 
-def verify_evidence_package(directory, *, etq_directory=None):
+def verify_evidence_package(directory, *, etq_directory=None, trusted_etq_manifest_sha256=None):
     package = Path(directory)
     manifest = json.loads(_load(package, "manifest.json"), object_pairs_hook=_unique_pairs,
                           parse_constant=lambda x: (_ for _ in ()).throw(ValueError("nonfinite")))
@@ -234,7 +252,8 @@ def verify_evidence_package(directory, *, etq_directory=None):
     _require(manifest["etqGate"] == validation.get("gate"), "integration gate label")
     if validation["gate"] == "passed":
         _require(etq_directory is not None, "ETQ bundle required to replay ETQ evidence")
-        expected = verify_etq_release(etq_directory)
+        expected = verify_etq_release(
+            etq_directory, trusted_manifest_sha256=trusted_etq_manifest_sha256)
         _require(validation == expected, "ETQ source identity differs")
         etq = load_etq_bundle(etq_directory)
     else:
@@ -242,9 +261,20 @@ def verify_evidence_package(directory, *, etq_directory=None):
             "schema": "edgewalk.etq-validation/v1",
             "gate": "not-run",
             "reason": "No independently authenticated ETQ v3 export supplied"
-        } and etq_directory is None, "unverified or forged ETQ source metadata")
+        } and etq_directory is None and trusted_etq_manifest_sha256 is None,
+                 "unverified or forged ETQ source metadata")
         etq = None
     _require(replay_experiment_receipt(record, etq), "exact experiment replay failed")
+    params = record.get("analysisParameters")
+    _require(isinstance(params, dict) and set(params) == {"bootstrapDraws"}
+             and type(params["bootstrapDraws"]) is int
+             and 32 <= params["bootstrapDraws"] <= 4096,
+             "missing or invalid exploratory bootstrap settings")
+    # Exact v0.4 replay intentionally ignores exploratory analysis; v0.5
+    # separately checks the COMPLETE submitted numerical summary by bytes.
+    _require(_json(record.get("exploratoryAnalysis")) ==
+             _json(_summarize(record["exactEvidence"], params["bootstrapDraws"])),
+             "exploratory summary does not match independently replayed controls")
     _require(_load(package, "calibration.json") == _json(_calibration(record)),
              "calibration diagnostics do not match exact controls")
     _require(_load(package, "findings.md") == _findings(record, validation["gate"]).encode("utf-8"),
