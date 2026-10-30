@@ -1,0 +1,13 @@
+{
+  "schema": "edgewalk.spark-toolchain-lock/v1",
+  "source": "Alire public crate registry",
+  "crateVersions": {
+    "gnat_native": "16.1.0",
+    "gnatprove": "16.1.0",
+    "gprbuild": "26.0.1"
+  },
+  "platform": "linux-x86_64",
+  "archiveChecksumsVerified": false,
+  "executionEnvironmentQualified": false,
+  "note": "Version pins only. Independently provision and verify tool archives; do not infer trust from this JSON or from Alire's mutable index. Record exact executable paths, --version output, and digests after an actual proof run."
+}
