@@ -51,7 +51,7 @@ def assess_report(text: str) -> dict:
         result["obligations"].append("Unrecognized GNATprove summary columns")
     if (justified is not None and justified != 0) or (unproved is not None and unproved != 0):
         result["obligations"].append("Justified or unproved obligations remain")
-    if re.search(r"(?im)\b(error:|warning: no checks generated|analysis .* skipped)\b", text):
+    if re.search(r"(?im)(?:error:|warning: no checks generated|analysis .* skipped)", text):
         result["obligations"].append("GNATprove emitted error/skip/no-check indication")
     if not re.search(r"gnatprove|SPARK Pro|FSF", text, re.I):
         result["obligations"].append("No credible tool invocation information")
