@@ -88,3 +88,17 @@ kernel-verified status. No replacement lockfile or kernel log has been
 fabricated here. The external reviewer reported 54 passing Python tests
 and one pre-existing physical-model CLI error also reproducible on the base;
 that failure must remain visible but is a separate issue from these proofs.
+
+
+### Typed theorem contract
+
+In addition to the four explicit module builds, Edgewalk.lean now contains
+five **typed Lean examples** requiring the specific CRT bijection, CRT inverse,
+phase closure, full monomial-order statement and GF(2) cancellation theorem.
+These examples must type-check in Lean. A theorem name hidden in a comment,
+or a weaker replacement theorem, cannot satisfy the typed examples.
+
+The source audit also pins the exact root proof-consumer text and rejects
+unexpected nested Lean modules or imported dependencies. This hardening
+does not replace kernel checking or resolve the outstanding Lake lockfile
+and pre-existing Python test error.
