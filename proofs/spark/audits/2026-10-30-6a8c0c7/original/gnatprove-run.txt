@@ -1,0 +1,148 @@
+Phase 1 of 3: generation of data representation information ...
+Phase 2 of 3: generation of Global contracts ...
+Phase 3 of 3: flow analysis and proof ...
+ info: range check proved
+--> edgewalk_reference.adb:7:47
+
+ info: division check proved
+--> edgewalk_reference.adb:20:58
+
+ info: range check proved
+--> edgewalk_reference.adb:20:58
+
+ info: division check proved
+--> edgewalk_reference.adb:21:60
+
+ info: range check proved
+--> edgewalk_reference.adb:21:60
+
+ info: division check proved
+--> edgewalk_reference.adb:34:52
+
+ info: division check proved
+--> edgewalk_reference.adb:34:60
+
+ info: overflow check proved
+--> edgewalk_reference.adb:36:45
+
+ info: range check proved
+--> edgewalk_reference.adb:36:45
+
+ info: overflow check proved
+--> edgewalk_reference.adb:36:51
+
+ info: division check proved
+--> edgewalk_reference.adb:45:23
+
+ info: division check proved
+--> edgewalk_reference.adb:48:33
+
+ info: loop invariant initialization proved
+--> edgewalk_reference.adb:53:13
+
+ info: loop invariant preservation proved
+--> edgewalk_reference.adb:53:13
+
+ info: implicit aspect Always_Terminates on "Tensor_Of" has been proved, subprogram will terminate
+--> edgewalk_reference.ads:19:13
+
+ info: data dependencies proved
+--> edgewalk_reference.ads:21:09
+
+ info: postcondition proved
+--> edgewalk_reference.ads:22:17
+
+ info: range check proved
+--> edgewalk_reference.ads:23:44
+
+ info: implicit aspect Always_Terminates on "Phase_Of" has been proved, subprogram will terminate
+--> edgewalk_reference.ads:25:13
+
+ info: data dependencies proved
+--> edgewalk_reference.ads:26:09
+
+ info: postcondition proved
+--> edgewalk_reference.ads:27:17
+
+ info: implicit aspect Always_Terminates on "Address_Of" has been proved, subprogram will terminate
+--> edgewalk_reference.ads:30:13
+
+ info: data dependencies proved
+--> edgewalk_reference.ads:31:09
+
+ info: postcondition proved
+--> edgewalk_reference.ads:33:11
+
+ info: division check proved
+--> edgewalk_reference.ads:33:60
+
+ info: range check proved
+--> edgewalk_reference.ads:33:60
+
+ info: division check proved
+--> edgewalk_reference.ads:35:38
+
+ info: range check proved
+--> edgewalk_reference.ads:35:38
+
+ info: division check proved
+--> edgewalk_reference.ads:37:44
+
+ info: range check proved
+--> edgewalk_reference.ads:37:53
+
+ info: division check proved
+--> edgewalk_reference.ads:37:67
+
+ info: division check proved
+--> edgewalk_reference.ads:39:29
+
+ info: implicit aspect Always_Terminates on "Sequence_Of" has been proved, subprogram will terminate
+--> edgewalk_reference.ads:41:13
+
+ info: data dependencies proved
+--> edgewalk_reference.ads:43:09
+
+ info: postcondition proved
+--> edgewalk_reference.ads:45:11
+
+ info: division check proved
+--> edgewalk_reference.ads:45:40
+
+ info: division check proved
+--> edgewalk_reference.ads:46:49
+
+ info: implicit aspect Always_Terminates on "Parity" has been proved, subprogram will terminate
+--> edgewalk_reference.ads:48:13
+
+ info: data dependencies proved
+--> edgewalk_reference.ads:49:09
+
+ info: postcondition proved
+--> edgewalk_reference.ads:50:17
+
+ info: implicit aspect Always_Terminates on "Is_Valid_Edge" has been proved, subprogram will terminate
+--> edgewalk_reference.ads:55:13
+
+ info: data dependencies proved
+--> edgewalk_reference.ads:57:09
+
+ info: postcondition proved
+--> edgewalk_reference.ads:58:17
+
+ info: initialization of "Target" proved
+--> edgewalk_reference.ads:66:07
+
+ info: initialization of "Accepted" proved
+--> edgewalk_reference.ads:67:07
+
+ info: data dependencies proved
+--> edgewalk_reference.ads:68:09
+
+ info: flow dependencies proved
+--> edgewalk_reference.ads:69:09
+
+ info: postcondition proved
+--> edgewalk_reference.ads:72:11
+Success: all checks proved (48 checks).
+Summary logged in /work/obj/gnatprove/gnatprove.out

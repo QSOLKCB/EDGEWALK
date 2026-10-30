@@ -1,0 +1,10 @@
+{
+  "justifiedChecks": 0,
+  "obligations": [
+    "Review original GNATprove output header, per-unit analysis, toolchain digests and source SHA. Parsed summary alone cannot certify proofs."
+  ],
+  "schema": "edgewalk.spark-gnatprove-assessment/v1",
+  "status": "REVIEW_REQUIRED",
+  "totalChecks": 48,
+  "unprovedChecks": 0
+}

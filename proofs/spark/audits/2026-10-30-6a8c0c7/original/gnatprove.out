@@ -1,0 +1,50 @@
+date               : 2026-10-30T13:43:44Z
+gnatprove version  : FSF 16.1.0
+host               : Linux 64 bits
+command line       : gnatprove -P edgewalk_spark.gpr --mode=all --level=2 --report=all --output-header --proof-warnings=on -j1
+ Proof_Switches attribute:
+
+
+=========================
+Summary of SPARK analysis
+=========================
+
+--------------------------------------------------------------------------------------------------
+SPARK Analysis results        Total        Flow                     Provers   Justified   Unproved
+--------------------------------------------------------------------------------------------------
+Data Dependencies                 7           7                           .           .          .
+Flow Dependencies                 1           1                           .           .          .
+Initialization                    2           2                           .           .          .
+Non-Aliasing                      .           .                           .           .          .
+Run-time Checks                  23           .                   23 (CVC5)           .          .
+Assertions                        2           .                    2 (CVC5)           .          .
+Functional Contracts              7           .    7 (CVC5 95%, Trivial 5%)           .          .
+LSP Verification                  .           .                           .           .          .
+Termination                       6           6                           .           .          .
+Concurrency                       .           .                           .           .          .
+--------------------------------------------------------------------------------------------------
+Total                            48    16 (33%)                    32 (67%)           .          .
+
+
+max steps used for successful proof: 2
+
+============================
+Most difficult proved checks
+============================
+
+No check found with max time greater than 1 second
+
+========================
+Detailed analysis report
+========================
+
+Analyzed 1 unit
+in unit edgewalk_reference, 8 subprograms and packages out of 8 analyzed
+  Edgewalk_Reference at edgewalk_reference.ads:3 flow analyzed (0 errors, 0 checks, 0 warnings and 0 pragma Assume statements) and proved (0 checks)
+  Edgewalk_Reference.Address_Of at edgewalk_reference.ads:30 flow analyzed (0 errors, 0 checks, 0 warnings and 0 pragma Assume statements) and proved (13 checks)
+  Edgewalk_Reference.Checked_Step at edgewalk_reference.ads:63 flow analyzed (0 errors, 0 checks, 0 warnings and 0 pragma Assume statements) and proved (1 checks)
+  Edgewalk_Reference.Is_Valid_Edge at edgewalk_reference.ads:55 flow analyzed (0 errors, 0 checks, 0 warnings and 0 pragma Assume statements) and proved (1 checks)
+  Edgewalk_Reference.Parity at edgewalk_reference.ads:48 flow analyzed (0 errors, 0 checks, 0 warnings and 0 pragma Assume statements) and proved (5 checks)
+  Edgewalk_Reference.Phase_Of at edgewalk_reference.ads:25 flow analyzed (0 errors, 0 checks, 0 warnings and 0 pragma Assume statements) and proved (1 checks)
+  Edgewalk_Reference.Sequence_Of at edgewalk_reference.ads:41 flow analyzed (0 errors, 0 checks, 0 warnings and 0 pragma Assume statements) and proved (8 checks)
+  Edgewalk_Reference.Tensor_Of at edgewalk_reference.ads:19 flow analyzed (0 errors, 0 checks, 0 warnings and 0 pragma Assume statements) and proved (3 checks)
