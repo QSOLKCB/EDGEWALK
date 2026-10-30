@@ -335,13 +335,18 @@ def replay_experiment_receipt(record, etq=None):
     """
     try:
         exact = record["exactEvidence"]
+        # Python compares 1 == 1.0 as True, but their canonical JSON bytes
+        # differ. Authenticate the SUBMITTED evidence before replaying it.
+        submitted_sha256 = sha256(EVIDENCE_DOMAIN + canonical_bytes(exact)).hexdigest()
+        if (record.get("domain") != "EDGEWALK/V4/EXPERIMENT"
+                or record.get("sha256") != submitted_sha256):
+            return False
         config = exact["config"]
         replay = run_controlled_experiment(
             etq, ensemble_size=config["ensembleSize"], swaps=config["swaps"],
             seed=config["seed"], variants=tuple(config["variants"]),
             bootstrap_draws=32)
-        return (record.get("domain") == "EDGEWALK/V4/EXPERIMENT"
-                and record.get("sha256") == replay["sha256"]
+        return (submitted_sha256 == replay["sha256"]
                 and exact == replay["exactEvidence"])
     except (KeyError, TypeError, ValueError, OverflowError):
         return False
