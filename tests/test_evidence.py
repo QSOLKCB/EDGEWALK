@@ -109,21 +109,88 @@ class EvidenceTests(TestCase):
                                        ensemble_size=4, swaps=2, bootstrap_draws=32)
             self.assertFalse((Path(d)/"out").exists())
 
+
+    def test_trusted_manifest_pin_blocks_self_consistent_receiver_forgery(self):
+        with TemporaryDirectory() as d:
+            synthetic_release(d)
+            original = _sha((Path(d)/"manifest.json").read_bytes())
+            with patch("edgewalk.evidence.load_etq_bundle", return_value=FAKE_BUNDLE):
+                with self.assertRaisesRegex(ValueError, "trusted manifest"):
+                    verify_etq_release(d)
+                self.assertEqual(verify_etq_release(
+                    d, trusted_manifest_sha256=original)["gate"], "passed")
+            p = Path(d)/"events.csv"
+            p.write_bytes(b"forged receiver\n")
+            receiptfile = Path(d)/"observation-receipt.json"
+            receipt = json.loads(receiptfile.read_text())
+            for row in receipt["receivers"]:
+                if row["filename"] == "events.csv":
+                    raw = p.read_bytes()
+                    row["sha256"], row["byteLength"] = _sha(raw), len(raw)
+                    domain = "ETQ/V3/RECEIVER/" + row["receiverId"] + "/v1"
+                    row["semanticSha256"] = _sha(domain.encode() + b"\0" + raw)
+            core = {key:value for key,value in receipt.items() if key != "receiptCoreSha256"}
+            receipt["receiptCoreSha256"] = _dh("ETQ/V3/RECEIPT/v1", core)
+            receiptfile.write_bytes(_canonical(receipt))
+            manifestfile = Path(d)/"manifest.json"
+            manifest = json.loads(manifestfile.read_text())
+            manifest["receiptCoreSha256"] = receipt["receiptCoreSha256"]
+            for row in manifest["artifacts"]:
+                if row["filename"] in ("events.csv", "observation-receipt.json"):
+                    raw = (Path(d)/row["filename"]).read_bytes()
+                    row["sha256"], row["byteLength"] = _sha(raw), len(raw)
+            manifestfile.write_bytes(_canonical(manifest))
+            with patch("edgewalk.evidence.load_etq_bundle", return_value=FAKE_BUNDLE):
+                with self.assertRaisesRegex(ValueError, "trusted manifest"):
+                    verify_etq_release(d, trusted_manifest_sha256=original)
+
+    def test_rehashed_exploratory_summary_tamper_rejected(self):
+        with TemporaryDirectory() as d:
+            target = Path(d)/"evidence"
+            write_evidence_package(target, ensemble_size=4, swaps=2, bootstrap_draws=32)
+            f = target/"experiment.json"
+            record = json.loads(f.read_text())
+            summary = record["exploratoryAnalysis"]["systems"]["golay/reference"]["fourCycles"]
+            summary["observed"] = -100
+            summary["empiricalTwoSidedTailFraction"] = 0.0
+            summary["exploratoryHolmAdjustedTail"] = 0.0
+            f.write_bytes(_canonical(record))
+            manifestfile = target/"manifest.json"
+            manifest = json.loads(manifestfile.read_text())
+            raw = f.read_bytes()
+            manifest["files"]["experiment.json"] = {"sha256": _sha(raw), "byteLength": len(raw)}
+            manifestfile.write_bytes(_canonical(manifest))
+            (target/"SHA256SUMS.txt").write_text("".join(
+                _sha((target/name).read_bytes())+"  "+name+"\n"
+                for name in sorted((*manifest["files"], "manifest.json"))))
+            with self.assertRaisesRegex(ValueError, "exploratory"):
+                verify_evidence_package(target)
+
+    def test_bootstrap_draw_count_is_reproduced(self):
+        with TemporaryDirectory() as d:
+            target = Path(d)/"evidence"
+            write_evidence_package(target, ensemble_size=4, swaps=2, bootstrap_draws=64)
+            record = json.loads((target/"experiment.json").read_text())
+            self.assertEqual(record["analysisParameters"]["bootstrapDraws"],64)
+            self.assertTrue(verify_evidence_package(target)["verified"])
+
     def test_secondary_etq_receipts_with_mocked_source(self):
         with TemporaryDirectory() as d:
             synthetic_release(d)
+            trusted_pin = _sha((Path(d)/"manifest.json").read_bytes())
             with patch("edgewalk.evidence.load_etq_bundle", return_value=FAKE_BUNDLE):
-                data = verify_etq_release(d)
+                data = verify_etq_release(d, trusted_manifest_sha256=trusted_pin)
             self.assertEqual(data["gate"], "passed")
             self.assertEqual(set(data["artifactSha256"]), BUNDLE_FILES)
             (Path(d)/"events.mid").write_bytes(b"corrupted")
             with patch("edgewalk.evidence.load_etq_bundle", return_value=FAKE_BUNDLE):
                 with self.assertRaisesRegex(ValueError, "artifact length or checksum"):
-                    verify_etq_release(d)
+                    verify_etq_release(d, trusted_manifest_sha256=trusted_pin)
 
     def test_core_receipt_tampering_even_after_manifest_rehash(self):
         with TemporaryDirectory() as d:
             synthetic_release(d)
+            trusted_pin = _sha((Path(d)/"manifest.json").read_bytes())
             p = Path(d)/"observation-receipt.json"
             receipt = json.loads(p.read_text())
             receipt["receivers"][0]["mediaType"] = "forged"
@@ -138,7 +205,7 @@ class EvidenceTests(TestCase):
             m.write_bytes(_canonical(manifest))
             with patch("edgewalk.evidence.load_etq_bundle", return_value=FAKE_BUNDLE):
                 with self.assertRaisesRegex(ValueError, "receipt core digest mismatch"):
-                    verify_etq_release(d)
+                    verify_etq_release(d, trusted_manifest_sha256=trusted_pin)
 
     def test_golay_only_forged_provenance_rejected_even_if_rehashed(self):
         with TemporaryDirectory() as d:
