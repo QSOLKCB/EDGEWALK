@@ -18,6 +18,15 @@ fi
 # Keep the generated lake-manifest.json as a reviewed release artifact.
 lake update
 lake exe cache get
-lake build
+
+# Build EVERY approved theorem module by its own Lake target. Do not rely
+# solely on Edgewalk.lean or defaultTargets: a changed import graph must
+# never let a broken mathematical proof go unchecked.
+for module in Edgewalk.CRT Edgewalk.Phase Edgewalk.Monomial Edgewalk.GF2 Edgewalk; do
+  echo "VERIFY_MODULE=$module"
+  lake build "$module"
+done
+
+# Fail closed if the project's global paranoid kernel check fails.
 lake check --paranoid
-echo "KERNEL_CHECKED=PASS (Lean and bundled independent checkers)"
+echo "KERNEL_CHECKED=PASS (all four modules built; paranoid check completed)"
