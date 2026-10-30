@@ -81,3 +81,12 @@ no host HOME, tokens or writable checkout. Source-only lint against #eval is
 not a security boundary. The Python 3.10 default test suite must not require
 tomli or any new third-party dependency. Do not mark the PR merge-ready
 without a genuine isolated kernel transcript and reviewed lockfile.
+
+## v0.7.1 Ada/SPARK reference
+
+Read docs/INVARIANTS_V071.md and proofs/spark/README.md. Keep all new Ada
+reference logic separate from original Python and upstream commitments.
+Never report runtime compilation as contract proof; GNATprove must genuinely
+analyze both package sources, all unproved or justified obligations must be
+listed, and exact toolchain versions must be captured. Run tooling in an
+isolated offline environment without host credentials. No GitHub Actions.

@@ -38,3 +38,12 @@ G-006 numeric eigenvector IPR under degeneracy is not uniquely reproducible from
 - **v0.7.2 (future):** differential reference/conformance cases
   linking proved Lean algebra, verified SPARK procedures and existing Python.
   No cross-language equivalence is automatic.
+
+- **v0.7.1 SPARK Ada reference (candidate):** bounded address/CRT, phase,
+  GF(2) parity and edge-transition contracts, separate runtime harness,
+  recorded exact version requirements and fail-closed GNATprove assessment.
+  GNATprove was not available during initial implementation; proof
+  acceptance is explicitly outstanding.
+- **v0.7.2 planned:** separate differential Python/Ada conformance bridge,
+  receipts recording Lean-kernel proof, Ada-contract proof, executable
+  tests and remaining obligations distinctly.
