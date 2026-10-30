@@ -10,15 +10,17 @@ import sys
 try:
     import tomllib
 except ModuleNotFoundError:
-    # Python 3.10 support; the verifier requires an actual TOML parser.
-    try:
-        import tomli as tomllib
-    except ModuleNotFoundError:
-        raise SystemExit("Install Python >=3.11 or 'tomli' for proof-source auditing")
+    # Python 3.10 has no tomllib. Do not add a dependency to the baseline.
+    # The exact pinned config is always checked byte-for-byte below, which is
+    # stricter than merely accepting an equivalent TOML parse.
+    tomllib = None
 
 ROOT = Path(__file__).resolve().parents[1]
 PIN = "56a005855ea17e0b0958f73ec801ae140b0a1679"
 TOOLCHAIN = "leanprover/lean4:v4.35.0"
+# Exact reviewed configuration; deliberately reject comments, alternative tables,
+# or effective value changes on Python 3.10 without a third-party TOML parser.
+LAKE_CONFIG = "name = \"edgewalk_proofs\"\nversion = \"0.7.0\"\ndefaultTargets = [\"Edgewalk\"]\n\n[[require]]\nname = \"mathlib\"\ngit = \"https://github.com/leanprover-community/mathlib4\"\nrev = \"56a005855ea17e0b0958f73ec801ae140b0a1679\"\n\n[[lean_lib]]\nname = \"Edgewalk\"\n"
 MATHLIB_URL = "https://github.com/leanprover-community/mathlib4"
 REQUIRED = {
     "CRT.lean": ("address_injective", "inverse_right", "inverse_left",
@@ -34,7 +36,8 @@ ROOT_IMPORTS = "".join(f"import Edgewalk.{name[:-5]}\n" for name in REQUIRED)
 ROOT_SOURCE = "import Edgewalk.CRT\nimport Edgewalk.Phase\nimport Edgewalk.Monomial\nimport Edgewalk.GF2\n\n/-! These are typed proof obligations: theorem names alone are insufficient. -/\n\nexample : Function.Bijective Edgewalk.CRT.address :=\n  Edgewalk.CRT.address_bijective\n\nexample (p : Fin 101 × Fin 3) :\n    Edgewalk.CRT.address (Edgewalk.CRT.inverse p) = p :=\n  Edgewalk.CRT.inverse_right p\n\nexample (a : Fin 3) :\n    Edgewalk.Phase.exponent a +\n      Edgewalk.Phase.exponent (Edgewalk.Phase.nextFibre a) +\n      Edgewalk.Phase.exponent\n        (Edgewalk.Phase.nextFibre (Edgewalk.Phase.nextFibre a)) = 0 :=\n  Edgewalk.Phase.three_step_closure a\n\nexample :\n    (∀ s : Edgewalk.Monomial.State,\n      Edgewalk.Monomial.iterateStep 303 s = s) ∧\n    (∀ k : Nat, 0 < k → k < 303 →\n      ∃ s : Edgewalk.Monomial.State,\n        Edgewalk.Monomial.iterateStep k s ≠ s) :=\n  Edgewalk.Monomial.monomial_exact_order_303\n\nexample (x : Edgewalk.GF2.Bit) : x + x = 0 :=\n  Edgewalk.GF2.self_add_zero x\n"
 BLOCKED = re.compile(
     r"\b(?:sorry|admit|axiom|unsafe|native_decide|run_tac|"
-    r"declare_syntax_cat|set_option\s+autoImplicit)\b"
+    r"declare_syntax_cat|set_option\s+autoImplicit|run_cmd|"
+    r"elab|macro|initialize)\b|#\s*(?:eval|reduce)\b"
 )
 
 
@@ -49,18 +52,29 @@ def audit(root: Path = ROOT) -> list[str]:
         errors.append("missing Lake config")
     else:
         try:
-            parsed = tomllib.loads(config.read_text(encoding="utf-8"))
-        except (tomllib.TOMLDecodeError, UnicodeError):
-            errors.append("invalid Lake TOML configuration")
+            source = config.read_text(encoding="utf-8")
+        except UnicodeError:
+            errors.append("invalid Lake TOML encoding")
         else:
-            requires = parsed.get("require")
-            if (not isinstance(requires, list) or len(requires) != 1
-                    or requires[0] != {"name": "mathlib", "git": MATHLIB_URL, "rev": PIN}):
+            # An *exact* allowlist excludes every changed effective dependency,
+            # even if the approved hash is present in a comment. On Python 3.10
+            # it also avoids importing nonstandard TOML packages.
+            if source != LAKE_CONFIG:
                 errors.append("effective Mathlib URL/revision/dependency pin changed")
-            if (parsed.get("name") != "edgewalk_proofs"
-                    or parsed.get("defaultTargets") != ["Edgewalk"]
-                    or parsed.get("lean_lib") != [{"name": "Edgewalk"}]):
-                errors.append("Lake root/build targets changed")
+            if tomllib is not None:
+                try:
+                    parsed = tomllib.loads(source)
+                except tomllib.TOMLDecodeError:
+                    errors.append("invalid Lake TOML configuration")
+                else:
+                    requires = parsed.get("require")
+                    if (not isinstance(requires, list) or len(requires) != 1
+                            or requires[0] != {"name": "mathlib", "git": MATHLIB_URL, "rev": PIN}):
+                        errors.append("effective Mathlib URL/revision/dependency pin changed")
+                    if (parsed.get("name") != "edgewalk_proofs"
+                            or parsed.get("defaultTargets") != ["Edgewalk"]
+                            or parsed.get("lean_lib") != [{"name": "Edgewalk"}]):
+                        errors.append("Lake root/build targets changed")
     root_module = root / "Edgewalk.lean"
     if (not root_module.is_file()
             or root_module.read_text(encoding="utf-8") != ROOT_SOURCE):
