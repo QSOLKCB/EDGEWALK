@@ -53,6 +53,17 @@ class SpectralStabilityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             nonbacktracking_modes(graph,modes=0)
 
+    def test_single_mode_dense_degeneracy_uses_full_spectrum(self):
+        # A 4-cycle has two oriented 4-cycles; every Hashimoto eigenvalue
+        # has algebraic multiplicity two even when modes=1 is requested.
+        graph = cycle(("a", "b", "c", "d"))
+        output = nonbacktracking_modes(graph, modes=1)
+        self.assertEqual(output["returnedModes"], 1)
+        mode = output["modes"][0]
+        self.assertTrue(mode["nearDegenerateInFullSpectrum"])
+        self.assertFalse(mode["nearDegenerateAmongReturned"])
+        self.assertIsNone(mode["edgeIPR"])
+
     def test_bethe_hessian_formula(self):
         graph = cycle(("a","b","c","d"))
         r, matrix = bethe_hessian(graph,r=2)
@@ -120,6 +131,17 @@ class SpectralStabilityTests(unittest.TestCase):
         stalled = bp_fixed_point_probe("x",max_iterations=1,atol=1e-14)
         self.assertFalse(stalled["fixedPointQualified"])
         self.assertIsNone(stalled["locallyAttracting"])
+
+    def test_high_llr_out_of_bounds_returns_unqualified_diagnostic(self):
+        # A valid llr can propose an inadmissible next message (>30).
+        # Keep the last admissible iterate and withhold stability claims.
+        result = bp_fixed_point_probe("x", llr=10)
+        self.assertFalse(result["fixedPointQualified"])
+        self.assertIsNone(result["locallyAttracting"])
+        self.assertTrue(result["messageBoundExceeded"])
+        self.assertEqual(result["terminationReason"], "message-bound")
+        self.assertEqual(result["iterations"], 1)
+        self.assertGreater(result["fixedPointResidualInfinity"], 0)
 
     def test_paired_perturbation_monotonicity_and_determinism(self):
         graph = build_tanner()
