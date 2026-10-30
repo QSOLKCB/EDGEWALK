@@ -99,8 +99,8 @@ def degree_preserving_control(graph: Mapping[str, tuple[str, ...]], swaps: int =
             work[x].add(y)
             work[y].add(x)
         done += 1
-    if done == 0 and swaps:
-        raise ValueError("no legal degree-preserving swaps")
+    if done != swaps:
+        raise ValueError(f"only {done} of {swaps} legal degree-preserving swaps completed")
     result = {a: tuple(sorted(row)) for a, row in sorted(work.items())}
     tanner_metrics(result)
     if {a: len(row) for a, row in graph.items()} != {a: len(row) for a, row in result.items()}:
