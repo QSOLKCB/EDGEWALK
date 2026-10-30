@@ -84,6 +84,15 @@ set +e
     python3 conformance/bridge.py generate \
       --cases results/cases.txt --expected results/python-expected.txt
     gprbuild -P conformance.gpr -p
+    # Exercise the real Ada input gate as negative controls too: invalid
+    # opcodes, out-of-domain input, overflow and extra fields must fail.
+    for bad in "X 0" "A 303" "I 101 0" "P 8388608 0" \
+               "E 0 45 1 1" "E 0 1 1 1 1"; do
+      if printf "%s\n" "$bad" | ./bin/conformance_driver > /dev/null 2>&1; then
+        echo "SPARK_CONFORMANCE=UNVERIFIED: Ada accepted bad record: $bad" >&2
+        exit 1
+      fi
+    done
     ./bin/conformance_driver < results/cases.txt > results/ada-observed.txt
     python3 conformance/bridge.py compare \
       --cases results/cases.txt --expected results/python-expected.txt \
