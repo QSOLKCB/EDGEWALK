@@ -7,6 +7,12 @@ from .core import code_parameters, walk_receipt
 def main():
     parser = argparse.ArgumentParser(description="EDGEWALK deterministic research lab")
     parser.add_argument("--full", action="store_true", help="include all v0.1 walk events")
+    parser.add_argument("--evidence-out", metavar="NEW_DIR",
+                        help="v0.5 create a fresh replayable evidence package")
+    parser.add_argument("--verify-evidence", metavar="DIR",
+                        help="v0.5 verify package digests and rebuild exact controls")
+    parser.add_argument("--validate-etq", metavar="DIR",
+                        help="v0.5 verify a complete genuine ETQ export")
     parser.add_argument("--etq-bundle", metavar="DIR", help="local SONIFICATION build:v3 output, read-only")
     parser.add_argument("--numerical", action="store_true", help="v0.2 NumPy spectral eigen diagnostics")
     parser.add_argument("--stability", action="store_true", help="v0.3 optional NumPy/SciPy stability report")
@@ -21,6 +27,32 @@ def main():
     parser.add_argument("--control-variants", default="reference,shear-a,shear-b",
                         help="v0.4 comma-separated Golay basis variants")
     args = parser.parse_args()
+    if sum(bool(x) for x in (args.evidence_out, args.verify_evidence, args.validate_etq)) > 1:
+        parser.error("choose only one v0.5 action")
+    if args.evidence_out or args.verify_evidence or args.validate_etq:
+        if (args.full or args.numerical or args.stability or args.no_nonbacktracking
+                or args.controls or args.swaps != 16 or args.epsilon != 0.01):
+            parser.error("v0.5 evidence actions cannot combine with legacy analysis modes")
+        from .evidence import (verify_etq_release, write_evidence_package,
+                               verify_evidence_package)
+        if args.validate_etq:
+            if args.etq_bundle or args.control_samples != 16 or args.control_swaps != 16:
+                parser.error("--validate-etq is standalone")
+            result = verify_etq_release(args.validate_etq)
+        elif args.verify_evidence:
+            if (args.control_samples != 16 or args.control_swaps != 16
+                    or args.control_seed != 303 or args.bootstrap_draws != 256
+                    or args.control_variants != "reference,shear-a,shear-b"):
+                parser.error("--verify-evidence replays the settings in the package")
+            result = verify_evidence_package(args.verify_evidence, etq_directory=args.etq_bundle)
+        else:
+            result = write_evidence_package(
+                args.evidence_out, etq_directory=args.etq_bundle,
+                ensemble_size=args.control_samples, swaps=args.control_swaps,
+                seed=args.control_seed, bootstrap_draws=args.bootstrap_draws,
+                variants=tuple(args.control_variants.split(",")))
+        print(json.dumps(result, sort_keys=True, separators=(",", ":"), allow_nan=False))
+        return
     control_options_changed = (args.control_samples != 16 or args.control_swaps != 16
                                or args.control_seed != 303 or args.bootstrap_draws != 256
                                or args.control_variants != "reference,shear-a,shear-b")
