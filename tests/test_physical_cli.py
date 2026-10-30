@@ -25,7 +25,12 @@ class PhysicalCLITests(unittest.TestCase):
             self.assertEqual(replay.returncode, 0, replay.stderr)
             self.assertTrue(json.loads(replay.stdout)["verified"])
             report["numericalDiagnostics"]["exactConditionalPermutationTail"] = 0
-            report_path.write_text(json.dumps(report), encoding="utf-8")
+            # Keep the malicious payload canonically serialized so the CLI
+            # reaches the semantic replay check, not its JSON format gate.
+            report_path.write_text(
+                json.dumps(report, sort_keys=True, ensure_ascii=True,
+                           separators=(",", ":"), allow_nan=False) + "\n",
+                encoding="utf-8")
             rejected = subprocess.run([sys.executable, "-m", "edgewalk",
                                        "--verify-physical-report", str(report_path)],
                                       cwd=root, capture_output=True, text=True)
