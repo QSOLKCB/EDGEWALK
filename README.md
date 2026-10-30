@@ -106,8 +106,9 @@ The v0.5 release provides a **read-only ETQ-303 v3.0.0 release-integrity gate**,
 Build the source ETQ bundle in its own SONIFICATION checkout using its published Node workflow; this project never changes those files. A valid v3 bundle contains contract.json, contract.schema.json, events.json, events.csv, events.mid, graph.json, event-atlas.json, observation-receipt.json and manifest.json.
 
 ~~~bash
-# Standalone source authenticity gate (requires real SONIFICATION output)
-python -m edgewalk --validate-etq ../SONIFICATION/dist/etq-303-v3.0.0
+# Source gate: only with independently authenticated ETQ_PIN and original output
+python -m edgewalk --validate-etq ../SONIFICATION/dist/etq-303-v3.0.0 \
+  --trusted-etq-manifest-sha256 "$ETQ_PIN"
 
 # Golay-only evidence (ETQ gate explicitly recorded as not-run)
 python -m edgewalk --evidence-out evidence-golay \
@@ -116,9 +117,11 @@ python -m edgewalk --verify-evidence evidence-golay
 
 # Complete ETQ/Golay integration, only with actual verified source output
 python -m edgewalk --evidence-out evidence-etq \
-  --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0
+  --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0 \
+  --trusted-etq-manifest-sha256 "$ETQ_PIN"
 python -m edgewalk --verify-evidence evidence-etq \
-  --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0
+  --etq-bundle ../SONIFICATION/dist/etq-303-v3.0.0 \
+  --trusted-etq-manifest-sha256 "$ETQ_PIN"
 
 python -m unittest discover -s tests -v
 ~~~
@@ -136,7 +139,7 @@ The upstream ETQ-303 publication pins events and lifted edges, but no independen
 published **complete v3.0.0 manifest SHA-256** has been verified for this
 implementation. The full ETQ validation gate therefore **fails closed** by
 default: a self-consistent manifest and observation receipt cannot establish
-an authentic complete export. Supply \`--trusted-etq-manifest-sha256 SHA256\`
+an authentic complete export. Supply `--trusted-etq-manifest-sha256 SHA256`
 only with a digest separately obtained and authenticated from the publisher
 or another trusted archival source. **Never compute this pin from the bundle
 being validated**; doing so reintroduces the forgery vulnerability. The caller
@@ -156,11 +159,11 @@ python -m edgewalk --verify-evidence evidence-etq --etq-bundle SOURCE_DIR \
 
 A real release pin should be published separately (for example in a signed,
 version-specific release statement) before anyone claims the full gate passed.
-Golay-only packages do not need an ETQ pin and continue to record \`not-run\`.
+Golay-only packages do not need an ETQ pin and continue to record `not-run`.
 
-The v0.5 package also records \`analysisParameters.bootstrapDraws\` outside
+The v0.5 package also records `analysisParameters.bootstrapDraws` outside
 the exact v0.4 evidence commitment. Verification independently reconstructs
-every \`exploratoryAnalysis\` field, including the seeded bootstrap intervals
+every `exploratoryAnalysis` field, including the seeded bootstrap intervals
 and tail-rank adjustments. Incorrect or type-altered summaries are rejected
 even when the package's outer manifest/checksum values are recomputed. The
 v0.4 exact receipt identity remains unaffected by bootstrap settings.
