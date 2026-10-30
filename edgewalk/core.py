@@ -168,9 +168,10 @@ def canonical_bytes(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
 
 
-def walk_receipt(steps: tuple[dict, ...] | None = None) -> dict[str, object]:
+def walk_receipt() -> dict[str, object]:
+    """Commit only to a walk recomputed and verified against the Golay graph."""
     graph = build_tanner()
-    events = run_walk(graph) if steps is None else steps
+    events = run_walk(graph)
     if len(events) != 303:
         raise ValueError("walk receipt requires exactly 303 events")
     payload = {
