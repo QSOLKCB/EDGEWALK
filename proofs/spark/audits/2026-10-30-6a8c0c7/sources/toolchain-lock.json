@@ -1,0 +1,18 @@
+{
+  "schema": "edgewalk.spark-toolchain-lock/v1",
+  "source": "Alire public crate registry",
+  "crateVersions": {
+    "gnat_native": "16.1.0",
+    "gnatprove": "16.1.0",
+    "gprbuild": "26.0.1"
+  },
+  "platform": "linux-x86_64",
+  "archiveChecksumsVerified": false,
+  "executionEnvironmentQualified": false,
+  "note": "Package pins are Alire crate release numbers; executable banners are checked separately and exactly. The Alire gprbuild 26.0.1 crate reports GPRBUILD 26.0.0. These observations do not authenticate archives. Preserve executable hashes and GNATprove proof status independently.",
+  "reportedExecutableVersions": {
+    "gnat_native": "GNATMAKE 16.1.0",
+    "gprbuild": "GPRBUILD 26.0.0",
+    "gnatprove": "FSF 16.1.0"
+  }
+}
