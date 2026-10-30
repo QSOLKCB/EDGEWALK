@@ -203,6 +203,10 @@ class EvidenceTests(TestCase):
                     row["sha256"] = _sha(new)
                     row["byteLength"] = len(new)
             m.write_bytes(_canonical(manifest))
+            # Intentionally supply a newly computed synthetic test pin to
+            # reach the inner receipt verifier. A genuine caller must NOT
+            # derive its trust pin from the bundle under examination.
+            trusted_pin = _sha(m.read_bytes())
             with patch("edgewalk.evidence.load_etq_bundle", return_value=FAKE_BUNDLE):
                 with self.assertRaisesRegex(ValueError, "receipt core digest mismatch"):
                     verify_etq_release(d, trusted_manifest_sha256=trusted_pin)
