@@ -140,6 +140,24 @@ class EvidenceTests(TestCase):
                 with self.assertRaisesRegex(ValueError, "receipt core digest mismatch"):
                     verify_etq_release(d)
 
+    def test_golay_only_forged_provenance_rejected_even_if_rehashed(self):
+        with TemporaryDirectory() as d:
+            target = Path(d)/"out"
+            write_evidence_package(target, ensemble_size=4, swaps=2, bootstrap_draws=32)
+            file = target/"validation.json"
+            record = json.loads(file.read_text())
+            record["forgedEtqAuthenticated"] = True
+            raw = _canonical(record)
+            file.write_bytes(raw)
+            manifest = json.loads((target/"manifest.json").read_text())
+            manifest["files"]["validation.json"] = {"sha256": _sha(raw), "byteLength": len(raw)}
+            (target/"manifest.json").write_bytes(_canonical(manifest))
+            (target/"SHA256SUMS.txt").write_text("".join(
+                _sha((target/name).read_bytes())+"  "+name+"\\n"
+                for name in sorted((*manifest["files"], "manifest.json"))))
+            with self.assertRaisesRegex(ValueError, "forged ETQ source"):
+                verify_evidence_package(target)
+
     def test_stable_evidence_bytes_and_honest_claims(self):
         with TemporaryDirectory() as d:
             a, b = Path(d)/"a", Path(d)/"b"
