@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qsol-edgewalk"
+version = "0.1.0"
+description = "Deterministic Golay Tanner and ETQ-inspired edge-walk research"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+
+[tool.setuptools.packages.find]
+include = ["edgewalk*"]
