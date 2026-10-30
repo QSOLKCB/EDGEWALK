@@ -47,3 +47,17 @@ G-006 numeric eigenvector IPR under degeneracy is not uniquely reproducible from
 - **v0.7.2 planned:** separate differential Python/Ada conformance bridge,
   receipts recording Lean-kernel proof, Ada-contract proof, executable
   tests and remaining obligations distinctly.
+
+## v0.7.2 implementation note (pending machine execution)
+
+The separately built non-SPARK Ada conformance driver calls the immutable
+v0.7.1 audited Ada package and emits test outputs for 303 forward CRT
+addresses, 303 inverse CRT inputs, 1,024 GF(2) word pairs, 8,100
+45-vertex reciprocal-edge configurations and the 303 Python Tanner-walk
+selected steps. The Python comparator regenerates its independent expected
+bytes and rejects tampering. Offline Bubblewrap runs both sides and saves
+source-pinned, checksum-bearing test results. The actual on-machine
+conformance run is still outstanding until its real transcript is provided;
+unit-level mock comparison is not genuine Ada execution.
+The separately outstanding Lean kernel check is unaffected, and no
+full-language Python equivalence or physical result is asserted.
