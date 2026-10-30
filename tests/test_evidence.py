@@ -47,7 +47,8 @@ def synthetic_release(root):
     docs["observation-receipt.json"] = _canonical(receipt)
     manifest = {"artifacts": [{"filename": name, "sha256": _sha(raw), "byteLength": len(raw)}
                               for name, raw in sorted(docs.items())],
-                "receiptCoreSha256": receipt["receiptCoreSha256"], "manifestCoreSha256": "mock-core"}
+                "receiptCoreSha256": receipt["receiptCoreSha256"]}
+    manifest["manifestCoreSha256"] = _dh("ETQ/V3/MANIFEST/v1", manifest)
     docs["manifest.json"] = _canonical(manifest)
     for name, raw in docs.items():
         (root/name).write_bytes(raw)
@@ -139,6 +140,8 @@ class EvidenceTests(TestCase):
                 if row["filename"] in ("events.csv", "observation-receipt.json"):
                     raw = (Path(d)/row["filename"]).read_bytes()
                     row["sha256"], row["byteLength"] = _sha(raw), len(raw)
+            manifest.pop("manifestCoreSha256")
+            manifest["manifestCoreSha256"] = _dh("ETQ/V3/MANIFEST/v1", manifest)
             manifestfile.write_bytes(_canonical(manifest))
             with patch("edgewalk.evidence.load_etq_bundle", return_value=FAKE_BUNDLE):
                 with self.assertRaisesRegex(ValueError, "trusted manifest"):
