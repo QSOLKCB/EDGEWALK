@@ -167,3 +167,58 @@ every `exploratoryAnalysis` field, including the seeded bootstrap intervals
 and tail-rank adjustments. Incorrect or type-altered summaries are rejected
 even when the package's outer manifest/checksum values are recomputed. The
 v0.4 exact receipt identity remains unaffected by bootstrap settings.
+
+
+## v0.6.0 — Independent Physical Model Adapter (strict gate)
+
+The first accepted **physical-domain adapter** is a retrospective, bounded
+Kepler third-law demonstration using publicly available [NASA NSSDCA Planetary
+Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/) data
+(last updated 18 March 2025). The exact fixture transcribes eight planets'
+mean heliocentric distances (millions of km) and orbital periods (days).
+NASA's mean distance is a *proxy* for a Keplerian semimajor axis, not a claim
+of independently reprocessed orbital elements. The CSV's SHA-256 is pinned in
+the adapter; execution never downloads untrusted data or substitutes a file.
+
+**Specified physical equation:** P(a) = P_Earth (a/a_Earth)^(3/2),
+with one Earth anchor and seven held-out planet pairs. The fixed test
+statistic is mean squared log-period prediction error (smaller is better).
+The null enumerates *all 7! = 5040* assignments of the seven orbital
+periods to the seven distances. The tail probability is an **exact conditional
+permutation rank** for the explicitly defined *uniform random-label null*.
+It is not an approximate MCMC null, and no asymptotic normality assumption
+is required for that conditional calculation.
+
+**Critical distinction:** the actual planets were not randomly assigned
+their periods. Random-label exchangeability is **not demonstrated as a
+physical observation-generating mechanism**. Therefore this is NOT an
+astrophysically calibrated test of Kepler's law, a discovery p-value, or
+prospective hypothesis confirmation; NASA's data predate v0.6. The apparent
+support is a retrospective instructional benchmark. The resulting
+`calibration` object explicitly reports
+`nullExactlyEnumerated=true` but
+`astronomicalInferenceCalibrated=false`.
+
+~~~bash
+python -m edgewalk --physical-model kepler-earth-anchored-v1 > kepler-report.json
+python -m edgewalk --verify-physical-report kepler-report.json
+python -m unittest discover -s tests -v
+~~~
+
+This model is **not** an adapter for the Alexander–Temple–Vogler cosmology
+or (3,2)-signature hypotheses. Any proposed additional physical model must
+supply the exact governing equations, parameter units/bounds, independently
+available observations and source identity, fixed test statistic, explicit
+exchangeability/generative-null justification, predeclared decision rule,
+and negative-result protocol **before** it is registered. Unknown model IDs
+fail closed.
+
+The v0.6 receipt domain is `EDGEWALK/V6/PHYSICAL-EXACT` and
+commits the external data transcription digest, source description, fixed
+protocol, permutation count and exact tail count. Numerical diagnostics are
+separate but the verifier independently recomputes the entire JSON report,
+including its floats. Earlier receipts remain unchanged. The **engineering
+(2,3) channel structure does not imply any physical (3,2) spacetime signature.**
+
+Read [docs/PHYSICAL_PROTOCOL.md](docs/PHYSICAL_PROTOCOL.md) and
+[docs/INVARIANTS_V06.md](docs/INVARIANTS_V06.md). No GitHub Actions added.
