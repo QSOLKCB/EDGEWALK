@@ -65,7 +65,7 @@ def audit(root: Path = ROOT) -> list[str]:
             or root_module.read_text(encoding="utf-8") != ROOT_IMPORTS):
         errors.append("root module must import all four expected proof modules, unchanged")
     expected_files = set(REQUIRED)
-    actual_files = {p.name for p in lean_root.glob("*.lean")} if lean_root.is_dir() else set()
+    actual_files = {p.relative_to(lean_root).as_posix() for p in lean_root.rglob("*.lean")} if lean_root.is_dir() else set()
     if actual_files != expected_files:
         errors.append("Lean proof module file set differs from approved list")
     for name, symbols in REQUIRED.items():
@@ -74,6 +74,13 @@ def audit(root: Path = ROOT) -> list[str]:
             errors.append("missing Lean module: " + name)
             continue
         source = file.read_text(encoding="utf-8")
+        approved_import = ("import Mathlib" if name in ("CRT.lean", "GF2.lean")
+                           else "import Edgewalk.CRT" if name == "Phase.lean"
+                           else "import Edgewalk.Phase")
+        import_lines = [line.strip() for line in source.splitlines()
+                        if line.strip().startswith("import ")]
+        if import_lines != [approved_import]:
+            errors.append("unapproved Lean module imports in " + name)
         if BLOCKED.search(source):
             errors.append("forbidden proof hole/axiom in " + name)
         for symbol in symbols:
