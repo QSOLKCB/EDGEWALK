@@ -59,8 +59,10 @@ class ProofConformanceBridgeTests(unittest.TestCase):
         # NOT evidence that any Ada executable has run.
         report = v.compare(cases, expected, expected)
         self.assertEqual(report["cases"], counts)
-        self.assertEqual(report["status"], "CONFORMANT_TESTED")
+        self.assertEqual(report["status"], "OUTPUT_MATCH_REVIEW_REQUIRED")
         self.assertFalse(report["pythonFormalEquivalence"])
+        self.assertEqual(len(report["pythonCoreSha256"]), 64)
+        self.assertEqual(len(report["adaDriverSha256"]), 64)
         self.assertEqual(report["leanKernelStatus"], "NOT_ESTABLISHED_BY_THIS_RUN")
         self.assertEqual(report["adaProofEvidence"],
                          "ARCHIVED_48_CHECKS_ZERO_UNPROVED_NOT_RERUN")
