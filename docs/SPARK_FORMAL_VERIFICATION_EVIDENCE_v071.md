@@ -23,7 +23,7 @@ This record is a review of the evidence **provided by the operator**, not a subs
 
 The detailed report recorded **one analyzed package unit**, with **eight of eight** package/subprogram entries analyzed: the package itself plus `Address_Of`, `Checked_Step`, `Is_Valid_Edge`, `Parity`, `Phase_Of`, `Sequence_Of`, and `Tensor_Of`. Each line showed no warnings, errors, or `pragma Assume` statements.
 
-The provenance metadata and source/compiled-tool fingerprints are recorded in [observed-results.json](../../proofs/spark/audit/observed-results.json).
+The provenance metadata and source/compiled-tool fingerprints are recorded in [observed-results.json](../proofs/spark/audit/observed-results.json).
 
 ## Prover invocation
 
@@ -61,6 +61,6 @@ Also **not proved by this audit**: formal equivalence of the existing Python cod
 
 ## Original-byte archive status
 
-The actual unmodified local GNATprove files were **not accessible to the GitHub connector**. They must be imported directly from the operator's `proofs/spark/evidence/` directory using [audit/capture.py](../../proofs/spark/audit/capture.py). The script copies original bytes with no modification and rejects an incomplete or inconsistent report, wrong source hashes, mismatched tool fingerprints or incorrect check counts.
+The actual unmodified local GNATprove files were **not accessible to the GitHub connector**. They must be imported directly from the operator's `proofs/spark/evidence/` directory using [audit/capture.py](../proofs/spark/audit/capture.py). The script copies original bytes with no modification and rejects an incomplete or inconsistent report, wrong source hashes, mismatched tool fingerprints or incorrect check counts.
 
 The resulting archive contains `original/`, `sources/`, `manifest.json`, `SHA256SUMS.txt`, and a concise `REVIEW.md`. Original log bytes are never recreated from this document. **This draft audit is not complete until that generated archive is reviewed and committed.**
