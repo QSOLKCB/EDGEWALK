@@ -33,7 +33,8 @@ def _require(condition: bool, reason: str):
 
 
 def _bytes(root: Path, filename: str) -> bytes:
-    _require(filename in BUNDLE_FILES, "unrecognised ETQ artifact")
+    _require(filename in BUNDLE_FILES or filename == "manifest.json",
+             "unrecognised ETQ artifact")
     p = root / filename
     _require(p.is_file() and not p.is_symlink(), "missing/symlinked upstream artifact: " + filename)
     _require(p.stat().st_size <= MAX_ARTIFACT_BYTES, "oversized upstream artifact")
