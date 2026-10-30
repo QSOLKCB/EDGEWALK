@@ -1,6 +1,6 @@
 {
   "schema": "edgewalk.spark-verification-observation/v1",
-  "observationOrigin": "User-shared local GNATprove report and terminal transcript; full original files not supplied to this PR yet",
+  "observationOrigin": "User-provided original local GNATprove evidence, captured and replay-validated, then committed byte-for-byte to this audit branch.",
   "proofSourceGitRevision": "6a8c0c72dd8f456e75907b213c46828395fc9ca2",
   "proofSourceFilesSha256": {
     "proofs/spark/src/edgewalk_reference.ads": "4608dc2406f241dd186ee39a38004704068b853d3b44a1401ca1b3bdf2a63bd0",
@@ -49,16 +49,28 @@
     "gnatprove": "544e6da2eedc24ce87d9200d44f61e8e789726466e81e68bf8935489d7f5323e"
   },
   "pythonSuite": {
-    "passed": 75,
+    "passed": 82,
     "failed": 0,
-    "reportOrigin": "user terminal output",
-    "archivedOriginalLog": false
+    "reportOrigin": "user local audit-branch terminal output",
+    "archivedOriginalLog": false,
+    "note": "Python test pass is independent of SPARK/GNATprove verification; source proof run itself originally accompanied 75 passing tests."
   },
   "verificationBoundaries": {
-    "spark": "GNATprove analysis reported 48 checks with 0 justified and 0 unproved, pending independently archived original bytes",
+    "spark": "User-supplied GNATprove original evidence archived byte-for-byte in GitHub: 48 checks, 0 justified, 0 unproved; reviewer must still evaluate claim scope and toolchain provenance.",
     "lean": "Not part of this audit; no Lean kernel proof transcript supplied",
-    "python": "75 runtime tests passed; this is not formal equivalence with SPARK",
+    "python": "82 runtime regression tests passed on audit branch; Python implementation is not formally proved equivalent to SPARK.",
     "toolchain": "Observed executable SHA256 only; release archive provenance remains independent verification gate"
   },
-  "originalEvidenceImported": false
+  "originalEvidenceImported": true,
+  "archive": {
+    "path": "proofs/spark/audits/2026-10-30-6a8c0c7",
+    "originalFiles": 9,
+    "sourceSnapshotFiles": 9,
+    "totalFiles": 21,
+    "uploadedFilesMatchProvidedArchive": true,
+    "inputZipSha256": "643c10e8f5d4ec13bfee91451198d3d3c4ca2c17939f120256e1af39cf20265e",
+    "localArchiveReplay": "ARCHIVE_REPLAY_VERIFIED",
+    "githubGitBlobs": "21 of 21 match uploaded ZIP original Git blob SHA-1",
+    "note": "ZIP SHA-256 identifies the uploaded transport file, while all 21 expanded files are recorded as Git blobs in the audit folder."
+  }
 }
