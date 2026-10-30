@@ -6,7 +6,7 @@
 
 - **v0.1 delivered:** exact binary Golay/CSS rank and distance, X/Z Tanner topology, 303 integer event scheduler, hash-bound baseline.
 - **v0.2 delivered:** read-only receipt-pinned ETQ-303 v3 input adapter; real adjacency-tested ETQ and Golay auxiliary walks; exact Laplacian/adjacency moments; non-backtracking combinatorial statistics; optional floating eigenspectrum/IPR; one deterministic degree-preserving topological control per system; separately domain-bound comparison receipt.
-- **v0.3 planned:** rigorous non-backtracking eigenmodes, ETQ Cartesian spectral-shift numerical cross-check, degenerate eigenspace projectors, solver reproducibility/precision, BP Jacobian proxy.
+- **v0.3 implemented (optional numerical):** sparse non-backtracking modes, Bethe Hessian, grouped projectors, ETQ Cartesian shift, channel-isolated BP fixed-point Jacobians, and paired graph-potential perturbations. Archived ETQ end-to-end remains a separate integration gate.
 - **v0.4 planned:** multiple check-basis choices, paired degree- and size-matched null ensembles, graph constraints, repeated perturbations, preregistered thresholds, interval estimates, negative and null-result archive.
 - **v0.5+ conditional:** independent physically calibrated differential-equation models if available; no 3+2 engineering signature interpreted as a (3,2) spacetime signature.
 
