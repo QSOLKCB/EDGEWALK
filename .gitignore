@@ -13,3 +13,8 @@ proofs/spark/bin/
 proofs/spark/evidence/
 proofs/spark/**/*.ali
 proofs/spark/**/*.o
+
+# v0.7.2 offline differential runner output (unreviewed until archived)
+proofs/spark/conformance-output/
+proofs/spark/conformance-output-*/
+proofs/spark/obj-conformance/

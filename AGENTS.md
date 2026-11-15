@@ -98,3 +98,16 @@ Support the pinned Alire toolchain under `~/opt/edgewalk-spark-toolchain`
 without moving binaries into `/usr`. GNATprove, GPRbuild and GNAT compilation
 must stay inside the read-only-toolchain offline Bubblewrap sandbox.
 No host HOME/credentials or network; no fabricated proof PASS.
+
+## v0.7.2 actual Python/Ada conformance gate
+
+Read docs/INVARIANTS_V072.md. The conformance executable is a **non-SPARK**
+Ada test harness and must not be included in the previously proved SPARK
+project. Pin the unchanged source bytes against the original v0.7.1 audit.
+Generate deterministic Python oracle cases, execute the real Ada package
+under offline Bubblewrap, and compare canonical outputs fail-closed with
+authentic receipts. The Python-only fixture unit tests are NOT evidence that
+Ada ran. A complete real-Ada differential run is a mandatory milestone gate,
+never a theorem about Python equivalence. Never claim the separate Lean kernel
+gate or vendor supply-chain provenance has passed without independent evidence.
+No GitHub Actions or upstream repository edits.
